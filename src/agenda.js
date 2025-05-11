@@ -417,5 +417,8 @@ class AgendaManager {
     }
 }
 
-// Export to window
+// Export the class
+export { AgendaManager };
+
+// Also add to window for backward compatibility
 window.AgendaManager = AgendaManager;

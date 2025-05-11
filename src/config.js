@@ -1,5 +1,5 @@
 // Application configuration
-window.CONFIG = {
+export const CONFIG = {
     // Base API URL (for future use)
     apiUrl: 'https://api.upcarz.com',
     
@@ -94,7 +94,7 @@ window.CONFIG = {
 };
 
 // Local data mapping for development
-window.LOCAL_DATA_MAPPING = {
+export const LOCAL_DATA_MAPPING = {
     'Jundiai_CantodaNatureza': 'Jundiai_CantodaNatureza.json',
     'Jundiai_ViladaTerra': 'Jundiai_ViladaTerra.json',
     'Jundiai_ViladoBosque': 'Jundiai_ViladoBosque.json',
@@ -107,6 +107,11 @@ window.LOCAL_DATA_MAPPING = {
 };
 
 // Helper function to get sheet name for API calls
-window.getSheetName = (city, condominium) => {
+export function getSheetName(city, condominium) {
     return `${city.replace(/\s+/g, '')}_${condominium}`;
-};
+}
+
+// Add to window for backward compatibility
+window.CONFIG = CONFIG;
+window.LOCAL_DATA_MAPPING = LOCAL_DATA_MAPPING;
+window.getSheetName = getSheetName;

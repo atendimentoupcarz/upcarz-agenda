@@ -1,6 +1,6 @@
-import './config.js';
-import './utils.js';
-import './agenda.js';
+import { CONFIG } from './config.js';
+import { showNotification } from './utils.js';
+import { AgendaManager } from './agenda.js';
 
 // Main application initialization
 console.log('Initializing Upcarz Scheduler...');
@@ -12,7 +12,7 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-function initApp() {
+export function initApp() {
     try {
         // Initialize the agenda manager
         window.agendaManager = new AgendaManager();
@@ -28,12 +28,21 @@ function initApp() {
     }
 }
 
-// Export functions to global scope
-window.showError = (message) => {
-    alert(`Erro: ${message}`);
-};
+// Initialize global variables for backward compatibility
+window.CONFIG = CONFIG;
+window.showNotification = showNotification;
 
-window.renderHomeView = () => {
+// Helper function to show error messages
+export function showError(message) {
+    alert(`Erro: ${message}`);
+    console.error(message);
+}
+
+// Add to window for backward compatibility
+window.showError = showError;
+
+// Export functions to global scope
+export function renderHomeView() {
     const app = document.getElementById('app');
     if (!app) return;
     

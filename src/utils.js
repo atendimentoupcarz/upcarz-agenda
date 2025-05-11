@@ -3,7 +3,7 @@
  */
 
 // Format date to YYYY-MM-DD
-function formatDate(date) {
+export function formatDate(date) {
     const d = new Date(date);
     let month = '' + (d.getMonth() + 1);
     let day = '' + d.getDate();
@@ -16,13 +16,13 @@ function formatDate(date) {
 }
 
 // Get day of the week in Portuguese
-function getDayOfWeek(date) {
+export function getDayOfWeek(date) {
     const days = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
     return days[date.getDay()];
 }
 
 // Get week range (start and end dates)
-function getWeekRange(date = new Date()) {
+export function getWeekRange(date = new Date()) {
     const currentDate = new Date(date);
     const currentDay = currentDate.getDay();
     const currentTime = currentDate.getTime();
@@ -45,7 +45,7 @@ function getWeekRange(date = new Date()) {
 }
 
 // Show notification to the user
-function showNotification(message, type = 'info') {
+export function showNotification(message, type = 'info') {
     // Remove any existing notifications
     const existingNotification = document.getElementById('notification');
     if (existingNotification) {
@@ -102,13 +102,27 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Export to window object
+// Export all functions
+export {
+    formatDate,
+    getDayOfWeek,
+    getWeekRange,
+    showNotification
+};
+
+// Add to window for backward compatibility
 window.utils = {
     formatDate,
     getDayOfWeek,
     getWeekRange,
     showNotification
 };
+
+// Also add individual functions to window
+window.formatDate = formatDate;
+window.getDayOfWeek = getDayOfWeek;
+window.getWeekRange = getWeekRange;
+window.showNotification = showNotification;
 
 // Initialize utility functions when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
