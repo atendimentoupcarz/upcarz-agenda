@@ -1,16 +1,88 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>UpCarZ Scheduler</title>
-    <script defer src="main.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento Upcarz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .time-slot {
+            transition: all 0.2s ease;
+        }
+        .time-slot:hover {
+            transform: translateY(-2px);
+        }
+        .time-slot:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="max-w-xl mx-auto bg-white shadow-md rounded p-6">
-        <h1 class="text-2xl font-bold mb-4">Agenda de Lavagem</h1>
-        <div id="agenda" class="space-y-2"></div>
+<body class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Agendamento de Lavagem</h1>
+            <p class="text-gray-600">Selecione sua cidade e condomínio para ver os horários disponíveis</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- City Selector -->
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
+                    <select id="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Selecione uma cidade</option>
+                    </select>
+                </div>
+
+                <!-- Condominium Selector -->
+                <div>
+                    <label for="condominium" class="block text-sm font-medium text-gray-700 mb-2">Condomínio</label>
+                    <select id="condominium" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                        <option value="">Selecione um condomínio</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden text-center py-8">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Carregando agenda...</p>
+        </div>
+
+        <!-- Agenda Container -->
+        <div id="agenda-container" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-800">Horários Disponíveis</h2>
+                <div id="week-navigation" class="flex items-center space-x-4">
+                    <button id="prev-week" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <span id="week-range" class="text-gray-700 font-medium"></span>
+                    <button id="next-week" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="agenda" class="bg-white rounded-xl shadow-md overflow-hidden">
+                <!-- Agenda content will be populated by JavaScript -->
+            </div>
+        </div>
     </div>
+
+    <script src="src/config.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/agenda.js"></script>
+    <script src="src/main.js"></script>
 </body>
 </html>

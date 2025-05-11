@@ -1,0 +1,57 @@
+{
+    "location": {
+        "city": "Campinas",
+        "condominium": "Jardim dos Lagos"
+    },
+    "availability": {
+        "2025-05-13": [
+            { "time": "8-10", "available": true },
+            { "time": "10-12", "available": true },
+            { "time": "13-15", "available": false },
+            { "time": "15-17", "available": true },
+            { "time": "18-20", "available": true }
+        ],
+        "2025-05-14": [
+            { "time": "8-10", "available": true },
+            { "time": "10-12", "available": false },
+            { "time": "13-15", "available": true },
+            { "time": "15-17", "available": true },
+            { "time": "18-20", "available": false }
+        ],
+        "2025-05-15": [
+            { "time": "8-10", "available": false },
+            { "time": "10-12", "available": true },
+            { "time": "13-15", "available": true },
+            { "time": "15-17", "available": true },
+            { "time": "18-20", "available": true }
+        ],
+        "2025-05-16": [
+            { "time": "8-10", "available": true },
+            { "time": "10-12", "available": true },
+            { "time": "13-15", "available": true },
+            { "time": "15-17", "available": false },
+            { "time": "18-20", "available": true }
+        ],
+        "2025-05-17": [
+            { "time": "8-10", "available": true },
+            { "time": "10-12", "available": true },
+            { "time": "13-15", "available": true },
+            { "time": "15-17", "available": true },
+            { "time": "18-20", "available": false }
+        ],
+        "2025-05-18": [
+            { "time": "8-10", "available": false },
+            { "time": "10-12", "available": false },
+            { "time": "13-15", "available": false },
+            { "time": "15-17", "available": false },
+            { "time": "18-20", "available": false }
+        ],
+        "2025-05-19": [
+            { "time": "8-10", "available": true },
+            { "time": "10-12", "available": true },
+            { "time": "13-15", "available": true },
+            { "time": "15-17", "available": true },
+            { "time": "18-20", "available": true }
+        ]
+    }
+}
