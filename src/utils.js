@@ -51,14 +51,26 @@ function getWeekDates(startDate) {
 }
 
 /**
- * Format time in 24h format to 12h format
- * @param {number} hours - Hours in 24h format
- * @returns {string} Formatted time (e.g., "8:00 AM")
+ * Format time in 24h format to 12h format with AM/PM
+ * @param {number} hour - Hour in 24h format
+ * @param {number} [minute=0] - Minute (0 or 30)
+ * @returns {string} Formatted time (e.g., '9:00 AM' or '2:30 PM')
  */
-function formatTime(hours) {
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:00 ${period}`;
+function formatTime(hour, minute = 0) {
+    const period = hour < 12 ? 'AM' : 'PM';
+    const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12-hour format
+    const displayMinute = minute.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinute} ${period}`;
+}
+
+/**
+ * Parse a time string in 'HH:MM' format to an object with hour and minute
+ * @param {string} timeStr - Time string in 'HH:MM' format
+ * @returns {Object} Object with hour and minute as numbers
+ */
+function parseTimeString(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return { hours, minutes };
 }
 
 /**

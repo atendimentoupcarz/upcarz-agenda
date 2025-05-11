@@ -14,11 +14,28 @@ const CONFIG = {
         apiKey: 'YOUR_GOOGLE_API_KEY',
     },
 
-    // Time slots configuration
+    // Time slots configuration with 30-minute increments
     timeSlots: {
-        morning: { start: 8, end: 12, label: 'Manhã' },
-        afternoon: { start: 13, end: 17, label: 'Tarde' },
-        evening: { start: 18, end: 20, label: 'Noite' }
+        morning: { 
+            start: 8, 
+            end: 12, 
+            label: 'Manhã',
+            slots: [
+                '08:00', '08:30', '09:00', '09:30', 
+                '10:00', '10:30', '11:00', '11:30'
+            ]
+        },
+        afternoon: { 
+            start: 12, 
+            end: 18, 
+            label: 'Tarde',
+            slots: [
+                '12:00', '12:30', '13:00', '13:30',
+                '14:00', '14:30', '15:00', '15:30',
+                '16:00', '16:30', '17:00', '17:30'
+            ]
+        }
+        // Evening period removed as requested
     },
 
     // Available cities and their condominiums

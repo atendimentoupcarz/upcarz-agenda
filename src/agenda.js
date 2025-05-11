@@ -89,60 +89,75 @@ class AgendaManager {
         const agendaElement = document.getElementById('agenda');
         const weekDates = window.utils.getWeekDates(this.currentWeekStart);
         
-        // Create the header row with weekdays
+        // Create the header with micro region info
         let agendaHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-7 gap-0 border-b border-gray-200">
-                <div class="hidden md:block"></div> <!-- Empty cell for time slots column -->
-                ${weekDates.map(date => {
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    const dayClass = isToday ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700';
-                    return `
-                        <div class="p-3 text-center border-r border-gray-200 ${dayClass}">
-                            <div class="text-sm font-medium">${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
-                            <div class="text-lg">${date.getDate()}</div>
-                        </div>`;
-                }).join('')}
+            <div class="bg-blue-50 p-4 mb-4 rounded-lg">
+                <h3 class="text-lg font-semibold">${this.agendaData.location.condominium}</h3>
+                <p class="text-sm text-gray-600">
+                    Micro Região: ${window.CONFIG.microRegions[this.agendaData.location.microRegion]}
+                </p>
             </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>
+                            ${weekDates.map(date => {
+                                const isToday = date.toDateString() === new Date().toDateString();
+                                const dayClass = isToday ? 'bg-blue-50 text-blue-700' : 'text-gray-700';
+                                return `
+                                    <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${dayClass}">
+                                        <div class="font-medium">${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
+                                        <div class="text-lg font-semibold">${date.getDate()}</div>
+                                    </th>`;
+                            }).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
         `;
         
         // Add time slots for each period
-        const timeSlots = window.CONFIG.timeSlots;
-        
-        Object.entries(timeSlots).forEach(([period, { start, end, label }]) => {
-            // Add period label
+        Object.entries(window.CONFIG.timeSlots).forEach(([period, { label, slots }]) => {
+            // Add period label row
             agendaHTML += `
-                <div class="border-b border-gray-200 last:border-b-0">
-                    <div class="bg-gray-50 px-4 py-2 text-sm font-medium text-gray-500">${label}</div>
-                    <div class="grid grid-cols-1 md:grid-cols-7 gap-0">
+                <tr class="bg-gray-50">
+                    <td colspan="${weekDates.length + 1}" class="px-4 py-2 text-sm font-medium text-gray-700">
+                        ${label}
+                    </td>
+                </tr>
             `;
-            
-            // Add time slots for each day of the week
-            for (let hour = start; hour <= end; hour++) {
-                // Time slot label (first column)
-                if (hour === start) {
-                    agendaHTML += `
-                        <div class="p-3 text-sm text-gray-500 border-r border-gray-200 flex items-center justify-center">
-                            ${window.utils.formatTime(hour)}
-                        </div>
-                    `;
-                } else {
-                    // Empty cells for the time slot label column
-                    agendaHTML += '<div class="hidden md:block"></div>';
-                }
+
+            // Add 30-minute slots
+            slots.forEach(timeSlot => {
+                const [hour, minute] = timeSlot.split(':').map(Number);
+                const timeSlotStr = `${hour.toString().padStart(2, '0')}:${minute === 0 ? '00' : '30'}`;
                 
-                // Time slots for each day
-                weekDates.forEach((date, dayIndex) => {
+                agendaHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 border-r">
+                            ${timeSlotStr}
+                        </td>
+                `;
+
+                // Add cells for each day of the week
+                weekDates.forEach(date => {
                     const dateStr = date.toISOString().split('T')[0];
-                    const isAvailable = this.isTimeSlotAvailable(dateStr, hour);
-                    const isPast = this.isPastTimeSlot(date, hour);
-                    const isSelected = this.selectedDate === dateStr && this.selectedTime === hour;
+                    const slotKey = timeSlotStr;
+                    const isAvailable = this.isTimeSlotAvailable(dateStr, slotKey);
+                    const isPast = this.isPastTimeSlot(date, hour, minute);
+                    const isSelected = this.selectedDate === dateStr && this.selectedTime === slotKey;
+                    const slotExists = this.doesTimeSlotExist(dateStr, slotKey);
                     
-                    let buttonClass = 'time-slot w-full py-2 px-1 text-sm rounded transition-colors ';
+                    let cellClass = 'px-1 py-2 text-center text-sm border-r border-gray-200 ';
+                    let buttonClass = 'w-full py-1 px-1 rounded transition-colors text-xs ';
                     
                     if (isSelected) {
                         buttonClass += 'bg-blue-600 text-white';
-                    } else if (isPast) {
+                    } else if (isPast || !slotExists) {
                         buttonClass += 'bg-gray-100 text-gray-400 cursor-not-allowed';
+                        if (!slotExists) {
+                            buttonClass += ' opacity-50';
+                        }
                     } else if (isAvailable) {
                         buttonClass += 'bg-green-100 text-green-800 hover:bg-green-200';
                     } else {
@@ -150,42 +165,68 @@ class AgendaManager {
                     }
                     
                     agendaHTML += `
-                        <div class="p-1 border-r border-b border-gray-100">
+                        <td class="${cellClass}">
                             <button 
-                                class="${buttonClass}"
+                                class="${buttonClass} time-slot"
                                 data-date="${dateStr}"
-                                data-time="${hour}"
-                                ${!isAvailable || isPast ? 'disabled' : ''}
-                                onclick="window.agendaManager.selectTimeSlot('${dateStr}', ${hour})"
+                                data-time="${slotKey}"
+                                ${!isAvailable || isPast || !slotExists ? 'disabled' : ''}
+                                onclick="window.agendaManager.selectTimeSlot('${dateStr}', '${slotKey}')"
                             >
-                                ${isAvailable ? 'Disponível' : 'Indisponível'}
+                                ${slotExists ? (isAvailable ? '✓' : '✕') : '—'}
                             </button>
-                        </div>
+                        </td>
                     `;
                 });
-            }
-            
-            agendaHTML += '</div></div>';
+
+                agendaHTML += '</tr>';
+            });
         });
+
+        agendaHTML += `
+                    </tbody>
+                </table>
+            </div>
+        `;
         
         agendaElement.innerHTML = agendaHTML;
     }
     
     /**
-     * Check if a time slot is available
+     * Check if a time slot exists in the data
      * @param {string} date - Date string in YYYY-MM-DD format
-     * @param {number} hour - Hour in 24h format
-     * @returns {boolean} True if the time slot is available
+     * @param {string} timeSlot - Time slot in 'HH:MM' format
+     * @returns {boolean} True if the time slot exists in the data
      */
-    isTimeSlotAvailable(date, hour) {
+    doesTimeSlotExist(date, timeSlot) {
         if (!this.agendaData || !this.agendaData.availability) return false;
         
         const dateData = this.agendaData.availability[date];
         if (!dateData) return false;
         
+        // Check if any time slot matches the requested time
         return dateData.some(slot => {
-            const [startHour, endHour] = slot.time.split('-').map(Number);
-            return hour >= startHour && hour < endHour && slot.available;
+            const [startTime] = slot.time.split('-');
+            return startTime === timeSlot;
+        });
+    }
+    
+    /**
+     * Check if a time slot is available
+     * @param {string} date - Date string in YYYY-MM-DD format
+     * @param {string} timeSlot - Time slot in 'HH:MM' format
+     * @returns {boolean} True if the time slot is available
+     */
+    isTimeSlotAvailable(date, timeSlot) {
+        if (!this.agendaData || !this.agendaData.availability) return false;
+        
+        const dateData = this.agendaData.availability[date];
+        if (!dateData) return false;
+        
+        // Find a slot that matches the exact time and is available
+        return dateData.some(slot => {
+            const [startTime] = slot.time.split('-');
+            return startTime === timeSlot && slot.available;
         });
     }
     
@@ -193,12 +234,13 @@ class AgendaManager {
      * Check if a time slot is in the past
      * @param {Date} date - Date object
      * @param {number} hour - Hour in 24h format
+     * @param {number} minute - Minute (0 or 30)
      * @returns {boolean} True if the time slot is in the past
      */
-    isPastTimeSlot(date, hour) {
+    isPastTimeSlot(date, hour, minute) {
         const now = new Date();
         const slotDate = new Date(date);
-        slotDate.setHours(hour, 0, 0, 0);
+        slotDate.setHours(hour, minute || 0, 0, 0);
         
         return slotDate < now;
     }
@@ -245,12 +287,12 @@ class AgendaManager {
     /**
      * Handle time slot selection
      * @param {string} date - Selected date in YYYY-MM-DD format
-     * @param {number} time - Selected hour in 24h format
+     * @param {string} timeSlot - Selected time slot in 'HH:MM' format
      */
-    selectTimeSlot(date, time) {
+    selectTimeSlot(date, timeSlot) {
         // In a real implementation, this would open a booking modal
         this.selectedDate = date;
-        this.selectedTime = time;
+        this.selectedTime = timeSlot;
         
         // Re-render to show the selected state
         this.renderAgenda();
@@ -262,10 +304,8 @@ class AgendaManager {
             month: 'long' 
         });
         
-        const formattedTime = window.utils.formatTime(time);
-        
         window.utils.showNotification(
-            `Você selecionou ${formattedDate} às ${formattedTime}. Em breve, você poderá confirmar o agendamento aqui.`,
+            `Você selecionou ${formattedDate} às ${timeSlot}. Em breve, você poderá confirmar o agendamento aqui.`,
             'info'
         );
     }
