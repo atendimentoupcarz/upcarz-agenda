@@ -51,552 +51,55 @@ class AgendaManager {
                 this.handleTimeSlotClick(e);
             }
         });
-    }
 
-    /**
-     * Populate the condominium select dropdown
-     */
-    populateCondominiumSelect() {
-        const select = document.getElementById('condominium');
-        if (!select) return;
-
-        // Clear existing options except the first one
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-
-        // Add condominiums from config
-        CONFIG.city.condominiums.forEach(condo => {
-            const option = document.createElement('option');
-            option.value = condo.id;
-            option.textContent = condo.name;
-            select.appendChild(option);
-        });
-    }
-
-    /**
-     * Load agenda data for a specific city and condominium
-     * @param {string} city - The city name
-     * @param {string} condominium - The condominium ID
-     */
-    async loadAgenda(city, condominium) {
-        try {
-            console.log(`Loading agenda for ${city} - ${condominium}`);
-            
-            this.currentCity = city;
-            this.currentCondominium = condominium;
-            
-            // In a real app, this would be an API call
-            // For now, we'll use local data
-            const data = await this.fetchAgendaData(city, condominium);
-            
-            if (data) {
-                this.agendaData = data;
-                this.renderAgenda();
-            } else {
-                throw new Error('No data received');
-            }
-        } catch (error) {
-            console.error('Error loading agenda:', error);
-            window.showError('Não foi possível carregar a agenda. Por favor, tente novamente.');
-        }
-    }
-
-    /**
-     * Fetch agenda data (mocked for now)
-     */
-    async fetchAgendaData(city, condominium) {
-        // In a real app, this would be an API call
-        // For now, we'll simulate a delay and return mock data
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Generate mock data for the next 14 days
-                const daysData = [];
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                for (let i = 0; i < 14; i++) {
-                    const date = new Date(today);
-                    date.setDate(today.getDate() + i);
-                    
-                    const dayData = {
-                        date: date.toISOString().split('T')[0],
-                        day: window.utils.getDayOfWeek(date),
-                        dateObj: new Date(date),
-                        slots: {}
-                    };
-                    
-                    // Add some random availability
-                    const periods = ['manha', 'tarde'];
-                    periods.forEach(period => {
-                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => ({
-                            time: slot,
-                            available: Math.random() > 0.4, // 60% chance of being available
-                            booked: false
-                        }));
-                    });
-                    
-                    daysData.push(dayData);
-                }
-                
-                resolve(daysData);
-            }, 300);
-        });
-    }
-
-    /**
-     * Render the agenda view
-     */
-    renderAgenda() {
-        const agendaContainer = document.getElementById('agenda');
-        if (!agendaContainer) return;
-        
-        if (!this.agendaData || this.agendaData.length === 0) {
-            agendaContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhum horário disponível para o período selecionado.</p>';
-            return;
-        }
-        
-        // Generate the agenda HTML
-        let html = `
-            <div class="bg-white rounded-xl shadow-card overflow-hidden">
-                <!-- Header -->
-                <div class="bg-primary-600 px-6 py-4">
-                    <h2 class="text-xl font-bold text-white">Agenda de Horários</h2>
-                    <p class="text-primary-100 text-sm mt-1">Selecione um horário disponível</p>
-                </div>
-                
-                <!-- Days Grid -->
-                <div class="overflow-x-auto">
-                    <div class="min-w-max">
-                        <div class="grid grid-cols-7 divide-x divide-gray-100">
-                            ${this.agendaData.map(day => this.renderDayColumn(day)).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-            
-        agendaContainer.innerHTML = html;
-    }
-
-    /**
-     * Render a day column in the agenda
-     */
-    renderDayColumn(dayData) {
-        const date = dayData.dateObj || new Date(dayData.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const isToday = date.toDateString() === today.toDateString();
-        const isPast = date < today && !isToday;
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        
-        // Format date for display
-        const dayNumber = date.getDate();
-        const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-        const monthName = monthNames[date.getMonth()];
-        const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
-        
-        // Count available slots
-        let availableSlots = 0;
-        Object.values(dayData.slots).forEach(period => {
-            availableSlots += period.filter(slot => slot.available).length;
-        });
-        
-        // Generate time slots HTML
-        let timeSlotsHtml = '';
-        
-        // Morning slots
-        if (dayData.slots.manha && dayData.slots.manha.length > 0) {
-            timeSlotsHtml += `
-                <div class="mb-3">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">Manhã</h4>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        ${dayData.slots.manha.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
-                    </div>
-                </div>`;
-        }
-        
-        // Afternoon slots
-        if (dayData.slots.tarde && dayData.slots.tarde.length > 0) {
-            timeSlotsHtml += `
-                <div class="mb-3">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">Tarde</h4>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        ${dayData.slots.tarde.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
-                    </div>
-                </div>`;
-        }
-        
-        // Generate availability badge
-        let availabilityBadge = '';
-        if (availableSlots > 0) {
-            availabilityBadge = `
-                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-green-800 bg-green-100 rounded-full">
-                    ${availableSlots} vaga${availableSlots > 1 ? 's' : ''}
-                </span>`;
-        } else {
-            availabilityBadge = `
-                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-red-800 bg-red-100 rounded-full">
-                    Esgotado
-                </span>`;
-        }
-        
-        const todayIndicator = isToday ? 
-            '<div class="mt-1 h-0.5 w-1/2 mx-auto bg-primary-500 rounded-full"></div>' : 
-            '';
-        
-        const noSlotsMessage = !timeSlotsHtml ? 
-            '<p class="text-xs text-gray-500 text-center py-4">Nenhum horário disponível</p>' : 
-            timeSlotsHtml;
-        
-        return `
-            <div class="p-3 border-r border-gray-100 last:border-r-0 ${isPast ? 'opacity-50' : ''} ${isWeekend ? 'bg-gray-50' : 'bg-white'}" 
-                 data-date="${dayData.date}">
-                <div class="text-center mb-3">
-                    <div class="text-sm font-medium text-gray-900">${dayName}</div>
-                    <div class="text-xs text-gray-500">${dayNumber} ${monthName}</div>
-                    ${availabilityBadge}
-                    ${todayIndicator}
-                </div>
-                <div class="h-80 overflow-y-auto pr-1">
-                    ${noSlotsMessage}
-                </div>
-            </div>`;
-    }
-
-    /**
-     * Render a time slot button
-     */
-    renderTimeSlot(slot, isPast) {
-        const isAvailable = slot.available && !isPast && !slot.booked;
-        const isBooked = slot.booked;
-        const isUnavailable = !slot.available || isPast;
-        
-        let buttonClass = 'time-slot text-sm py-1.5 px-2 rounded-md text-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500';
-        
-        if (isBooked) {
-            buttonClass += ' bg-red-50 text-red-500 border border-red-100 cursor-not-allowed';
-        } else if (isUnavailable) {
-            buttonClass += ' bg-gray-100 text-gray-400 cursor-not-allowed';
-        } else {
-            buttonClass += ' bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 hover:border-green-200';
-        }
-        
-        return `
-            <button 
-                class="${buttonClass}"
-                ${!isAvailable ? 'disabled' : ''}
-                data-time="${slot.time}"
-                data-available="${isAvailable}"
-                title="${isAvailable ? 'Clique para agendar' : 'Horário indisponível'}">
-                ${slot.time}
-            </button>`;
-    }
-
-    /**
-     * Format a date range for display
-     */
-    formatWeekRange(startDate, endDate) {
-        const startDay = startDate.getDate();
-        const startMonth = startDate.toLocaleString('pt-BR', { month: 'short' });
-        const endDay = endDate.getDate();
-        const endMonth = endDate.toLocaleString('pt-BR', { month: 'short' });
-        const year = endDate.getFullYear();
-        
-        if (startMonth === endMonth) {
-            return `${startDay} - ${endDay} ${startMonth} ${year}`;
-        } else {
-            return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
-        }
-    }
-
-    /**
-     * Navigate to previous or next week
-     */
-    navigateWeek(direction) {
-        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
-        
-        // Reload agenda data for the new week
-        if (this.currentCity && this.currentCondominium) {
-            this.loadAgenda(this.currentCity, this.currentCondominium);
-        }
-    }
-
-    /**
-     * Handle time slot click
-     */
-    handleTimeSlotClick(event) {
-        const button = event.target.closest('.time-slot');
-        if (!button) return;
-        
-        const time = button.dataset.time;
-        const date = button.closest('[data-date]').dataset.date;
-        const isAvailable = button.dataset.available === 'true';
-        
-        if (!isAvailable) return;
-        
-        this.selectedDate = date;
-        this.selectedTime = time;
-        
-        // Show booking form or modal
-        this.showBookingForm(date, time);
-    }
-
-    /**
-     * Show booking form/modal
-     */
-    showBookingForm(date, time) {
-        // In a real app, this would show a modal with a form
-        // For now, we'll just log the selection
-        console.log(`Selected time: ${date} at ${time}`);
-        
-        // Show a confirmation dialog
-        if (confirm(`Deseja agendar para ${date} às ${time}?`)) {
-            this.submitBooking();
-        }
-    }
-
-    /**
-     * Submit a booking
-     */
-    async submitBooking() {
-        try {
-            // In a real app, this would be an API call
-            // For now, we'll just log the booking
-            console.log('Submitting booking:', {
-                date: this.selectedDate,
-                time: this.selectedTime,
-                condominium: this.currentCondominium
+        // Form submission
+        const bookingForm = document.getElementById('booking-form');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitBooking();
             });
-            
-            // Add to booked slots
-            const slotKey = `${this.selectedDate}_${this.selectedTime}`;
-            this.bookedSlots.add(slotKey);
-            
-            // Show success message
-            window.showSuccess('Agendamento realizado com sucesso!');
-            
-            // Reload agenda to reflect the booking
-            if (this.currentCity && this.currentCondominium) {
-                await this.loadAgenda(this.currentCity, this.currentCondominium);
-            }
-            
-            // Reset selection
-            this.selectedDate = null;
-            this.selectedTime = null;
-            
-        } catch (error) {
-            console.error('Error submitting booking:', error);
-            window.showError('Não foi possível realizar o agendamento. Por favor, tente novamente.');
-        }
-    }
-            throw error;
         }
     }
 
-    /**
-     * Fetch agenda data (mocked for now)
-     */
-    async fetchAgendaData(city, condominium) {
-        // In a real app, this would be an API call
-        // For now, we'll simulate a delay and return mock data
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Generate mock data for the next 14 days
-                const daysData = [];
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                for (let i = 0; i < 14; i++) {
-                    const date = new Date(today);
-                    date.setDate(today.getDate() + i);
-                    
-                    const dayData = {
-                        date: date.toISOString().split('T')[0],
-                        day: window.utils.getDayOfWeek(date),
-                        dateObj: new Date(date),
-                        slots: {}
-                    };
-                    
-                    // Add some random availability
-                    const periods = ['manha', 'tarde'];
-                    periods.forEach(period => {
-                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => {
-                            // Make some slots unavailable (for demo purposes)
-                            const isAvailable = Math.random() > 0.4; // Increased availability for demo
-                            return {
-                                time: slot,
-                                available: isAvailable,
-                                booked: false
-                            };
-                        });
-                    });
-                    
-                    daysData.push(dayData);
-                }
-                
-                resolve(daysData);
-            }, 300);
-        });
-    }
-
-    /**
-     * Render the agenda view
-     */
-    renderAgenda() {
-        const agendaContainer = document.getElementById('agenda');
-        if (!agendaContainer) return;
-        
-        if (!this.agendaData || this.agendaData.length === 0) {
-            agendaContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhum horário disponível para o período selecionado.</p>';
-            return;
-        }
-        
-        // Generate the agenda HTML
-        let html = `
-            <div class="bg-white rounded-xl shadow-card overflow-hidden">
-                <!-- Header -->
-                <div class="bg-primary-600 px-6 py-4">
-                    <h2 class="text-xl font-bold text-white">Agenda de Horários</h2>
-                    <p class="text-primary-100 text-sm mt-1">Selecione um horário disponível</p>
-                </div>
-                
-                <!-- Days Grid -->
-                <div class="overflow-x-auto">
-                    <div class="min-w-max">
-                        <div class="grid grid-cols-7 divide-x divide-gray-100">
-                            ${this.agendaData.map(day => this.renderDayColumn(day)).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Booking Form (Hidden by default) -->
-            <div id="booking-form" class="hidden mt-6 bg-white p-6 rounded-lg border border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Confirmar Agendamento</h3>
-                <p id="selected-time" class="text-gray-600 mb-4"></p>
-                <form id="confirm-booking" class="space-y-4">
-                    <div>
-                        <label for="client-name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                        <input type="text" id="client-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="client-phone" class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                        <input type="tel" id="client-phone" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                    </div>
-                    <div>
-                        <label for="client-email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                        <input type="email" id="client-email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                    </div>
-                    <div class="flex justify-end space-x-3 pt-2">
-                        <button type="button" id="cancel-booking" class="btn btn-secondary">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        
-        agendaContainer.innerHTML = html;
-        
-        // Add event listeners for the booking form
-        this.setupBookingForm();
-    }
-    
-    /**
-     * Render a day column in the agenda
-     */
-    renderDayColumn(dayData) {
-        const date = dayData.dateObj || new Date(dayData.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const isToday = date.toDateString() === today.toDateString();
-        const isPast = date < today && !isToday;
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        
-        // Format date for display
-        const dayNumber = date.getDate();
-        const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-        const monthName = monthNames[date.getMonth()];
-        const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
-        
-        // Count available slots
-        let availableSlots = 0;
-        Object.values(dayData.slots).forEach(period => {
-            availableSlots += period.filter(slot => slot.available).length;
-        });
-        
-        // Generate time slots HTML
-    
-    // Format date for display
-    const dayNumber = date.getDate();
-    const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    const monthName = monthNames[date.getMonth()];
-    const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
-    
-    // Count available slots
-    let availableSlots = 0;
-    Object.values(dayData.slots).forEach(period => {
-        availableSlots += period.filter(slot => slot.available).length;
-    });
-    
-    // Generate time slots HTML
-    let timeSlotsHtml = '';
-    
     /**
      * Handle time slot click
+     * @param {Event} event - The click event
      */
     handleTimeSlotClick(event) {
         const button = event.target.closest('.time-slot');
         if (!button || button.disabled) return;
         
         const time = button.dataset.time;
-        const dateStr = button.closest('[data-date]')?.dataset.date;
+        const date = button.dataset.date;
         
-        if (!time || !dateStr) return;
+        if (!date || !time) return;
         
-        this.selectedDate = dateStr;
+        this.selectedDate = date;
         this.selectedTime = time;
         
-        // Show the booking form
-        const bookingForm = document.getElementById('booking-form');
-        const selectedTimeDisplay = document.getElementById('selected-time');
-        
-        if (bookingForm && selectedTimeDisplay) {
-            const date = new Date(dateStr);
-            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
-            const formattedDate = date.toLocaleDateString('pt-BR');
-            
-            selectedTimeDisplay.textContent = `${dayName}, ${formattedDate} às ${time}`;
-            bookingForm.classList.remove('hidden');
-            
-            // Scroll to the form
-            bookingForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        // Show booking form
+        this.showBookingForm(date, time);
     }
-    
+
     /**
-     * Set up the booking form
+     * Show booking form/modal
+     * @param {string} date - The selected date
+     * @param {string} time - The selected time
      */
-    setupBookingForm() {
-        const bookingForm = document.getElementById('booking-form');
-        const cancelButton = document.getElementById('cancel-booking');
-        const confirmForm = document.getElementById('confirm-booking');
+    showBookingForm(date, time) {
+        const form = document.getElementById('booking-form');
+        if (!form) return;
         
-        if (cancelButton) {
-            cancelButton.addEventListener('click', () => {
-                if (bookingForm) {
-                    bookingForm.classList.add('hidden');
-                }
-            });
-        }
+        // Set the selected date and time in the form
+        const dateDisplay = document.getElementById('selected-date');
+        const timeDisplay = document.getElementById('selected-time');
         
-        if (confirmForm) {
-            confirmForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.submitBooking();
-            });
-        }
+        if (dateDisplay) dateDisplay.textContent = date;
+        if (timeDisplay) timeDisplay.textContent = time;
+        
+        // Show the form
+        form.classList.remove('hidden');
     }
     
     /**
@@ -635,25 +138,282 @@ class AgendaManager {
             window.showNotification('Agendamento realizado com sucesso!', 'success');
             
             // Reset form
-            if (confirmForm) {
-                confirmForm.reset();
-            }
-            
-            // Hide booking form
             const bookingForm = document.getElementById('booking-form');
             if (bookingForm) {
+                bookingForm.reset();
                 bookingForm.classList.add('hidden');
             }
             
             // Reload agenda to show updated availability
             if (this.currentCity && this.currentCondominium) {
-                this.loadAgenda(this.currentCity, this.currentCondominium);
+                await this.loadAgenda(this.currentCity, this.currentCondominium);
             }
+            
+            // Reset selection
+            this.selectedDate = null;
+            this.selectedTime = null;
             
         } catch (error) {
             console.error('Error submitting booking:', error);
             window.showNotification('Não foi possível realizar o agendamento. Por favor, tente novamente.', 'error');
         }
+    }
+    
+    /**
+     * Load agenda for a specific city and condominium
+     * @param {string} city - The city name
+     * @param {string} condominium - The condominium ID
+     */
+    async loadAgenda(city, condominium) {
+        try {
+            this.currentCity = city;
+            this.currentCondominium = condominium;
+            
+            // Show loading state
+            const agendaContainer = document.getElementById('agenda');
+            if (agendaContainer) {
+                agendaContainer.innerHTML = '<div class="text-center py-8">Carregando...</div>';
+            }
+            
+            // Fetch agenda data
+            this.agendaData = await this.fetchAgendaData(city, condominium);
+            
+            // Render the agenda
+            this.renderAgenda();
+            
+        } catch (error) {
+            console.error('Error loading agenda:', error);
+            window.showNotification('Não foi possível carregar a agenda. Por favor, tente novamente.', 'error');
+        }
+    }
+    
+    /**
+     * Fetch agenda data (mocked for now)
+     */
+    async fetchAgendaData(city, condominium) {
+        // In a real app, this would be an API call
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Generate mock data for the next 14 days
+                const daysData = [];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                for (let i = 0; i < 14; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    
+                    const dayData = {
+                        date: date.toISOString().split('T')[0],
+                        day: window.utils.getDayOfWeek(date),
+                        dateObj: new Date(date),
+                        slots: {}
+                    };
+                    
+                    // Add some random availability
+                    const periods = ['manha', 'tarde'];
+                    periods.forEach(period => {
+                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => ({
+                            time: slot,
+                            available: Math.random() > 0.4, // 60% chance of being available
+                            booked: false
+                        }));
+                    });
+                    
+                    daysData.push(dayData);
+                }
+                
+                resolve(daysData);
+            }, 300);
+        });
+    }
+    
+    /**
+     * Render the agenda view
+     */
+    renderAgenda() {
+        const agendaContainer = document.getElementById('agenda');
+        if (!agendaContainer) return;
+        
+        if (!this.agendaData || this.agendaData.length === 0) {
+            agendaContainer.innerHTML = '<div class="text-center py-8">Nenhum horário disponível para exibir.</div>';
+            return;
+        }
+        
+        // Format the week range for display
+        const startDate = new Date(this.agendaData[0].date);
+        const endDate = new Date(this.agendaData[this.agendaData.length - 1].date);
+        const weekRange = this.formatWeekRange(startDate, endDate);
+        
+        // Render the agenda header
+        let html = `
+            <div class="mb-6 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-800">Disponibilidade</h2>
+                <div class="flex items-center space-x-2">
+                    <button id="prev-week" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">${weekRange}</span>
+                    <button id="next-week" class="p-2 rounded-full hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+        `;
+        
+        // Render each day column
+        this.agendaData.forEach(dayData => {
+            html += this.renderDayColumn(dayData);
+        });
+        
+        html += '</div>'; // Close grid
+        agendaContainer.innerHTML = html;
+    }
+    
+    /**
+     * Render a day column in the agenda
+     * @param {Object} dayData - The day data to render
+     */
+    renderDayColumn(dayData) {
+        const date = new Date(dayData.date);
+        const dayName = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
+        const dayNumber = date.getDate();
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthName = monthNames[date.getMonth()];
+        const isToday = new Date().toDateString() === date.toDateString();
+        
+        let html = `
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-blue-600 text-white text-center py-2">
+                    <div class="text-sm font-medium">${dayName}</div>
+                    <div class="text-2xl font-bold">${dayNumber}</div>
+                    <div class="text-xs">${monthName}</div>
+                </div>
+                <div class="p-3 space-y-2">
+        `;
+        
+        // Render time slots for each period (manhã/tarde)
+        const periods = ['manha', 'tarde'];
+        periods.forEach(period => {
+            const periodData = dayData.slots[period];
+            if (!periodData) return;
+
+            html += `
+                <div class="mb-3">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">${CONFIG.timeSlots[period].label}</h3>
+                    <div class="space-y-1">
+            `;
+
+            periodData.forEach(slot => {
+                const isAvailable = slot.available && !slot.booked;
+                const isPast = new Date(`${dayData.date}T${slot.time}`) < new Date();
+
+                html += this.renderTimeSlot(slot, isAvailable, isPast, dayData.date);
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+
+        return html;
+    }
+
+    /**
+     * Render a time slot button
+     */
+    renderTimeSlot(slot, isAvailable, isPast, date) {
+        const isSelected = this.selectedDate === date && this.selectedTime === slot.time;
+        const isDisabled = !isAvailable || isPast;
+
+        let buttonClass = 'time-slot w-full text-left py-2 px-3 rounded text-sm';
+
+        if (isSelected) {
+            buttonClass += ' bg-blue-100 text-blue-800 border border-blue-300';
+        } else if (isDisabled) {
+            buttonClass += ' bg-gray-100 text-gray-400 cursor-not-allowed';
+        } else {
+            buttonClass += ' bg-green-100 text-green-800 hover:bg-green-200';
+        }
+
+        return `
+            <button 
+                class="${buttonClass}"
+                data-time="${slot.time}"
+                data-date="${date}"
+                ${isDisabled ? 'disabled' : ''}
+            >
+                ${slot.time}
+            </button>
+        `;
+    }
+
+    /**
+     * Format a date range for display
+     */
+    formatWeekRange(startDate, endDate) {
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const startDay = startDate.getDate();
+        const startMonth = monthNames[startDate.getMonth()];
+        const endDay = endDate.getDate();
+        const endMonth = monthNames[endDate.getMonth()];
+        const year = endDate.getFullYear();
+
+        if (startMonth === endMonth) {
+            return `${startDay} - ${endDay} de ${startMonth} ${year}`;
+        } else {
+            return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} ${year}`;
+        }
+    }
+
+    /**
+     * Navigate to previous or next week
+     */
+    navigateWeek(direction) {
+        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
+        
+        if (this.currentCity && this.currentCondominium) {
+            this.loadAgenda(this.currentCity, this.currentCondominium);
+        }
+    }
+    
+    /**
+     * Populate the condominium select dropdown
+     */
+    populateCondominiumSelect() {
+        const select = document.getElementById('condominium');
+        if (!select) return;
+        
+        // Clear existing options
+        select.innerHTML = '<option value="">Selecione um condomínio</option>';
+        
+        // Add options from CONFIG
+        const condominios = CONFIG.condominios['Jundiaí'] || [];
+        condominios.forEach(cond => {
+            const option = document.createElement('option');
+            option.value = cond.id;
+            option.textContent = cond.nome;
+            select.appendChild(option);
+        });
+        
+        // Add change event listener
+        select.addEventListener('change', (e) => {
+            const condominiumId = e.target.value;
+            if (condominiumId) {
+                this.loadAgenda('Jundiaí', condominiumId);
+            }
+        });
     }
 }
 
