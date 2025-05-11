@@ -3,27 +3,43 @@
  * Handles DOM initialization and event listeners
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        // Initialize the agenda manager
-        window.agendaManager = new AgendaManager();
-        
-        // Set up event listeners
-        setupEventListeners();
-        
-        // Load the initial data
-        loadInitialData();
-        
-        console.log('Upcarz Scheduler initialized successfully');
-    } catch (error) {
-        console.error('Error initializing application:', error);
-        // Show error message to the user
-        window.utils.showNotification(
-            'Ocorreu um erro ao carregar o aplicativo. Por favor, recarregue a página.',
-            'error'
-        );
+// Expose the init function to the global scope
+window.main = {
+    init: function() {
+        try {
+            console.log('Initializing Upcarz Scheduler...');
+            // Initialize the agenda manager
+            window.agendaManager = new AgendaManager();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Load the initial data
+            loadInitialData();
+            
+            console.log('Upcarz Scheduler initialized successfully');
+        } catch (error) {
+            console.error('Error initializing application:', error);
+            // Show error message to the user
+            if (window.utils && window.utils.showNotification) {
+                window.utils.showNotification(
+                    'Ocorreu um erro ao carregar o aplicativo. Por favor, recarregue a página.',
+                    'error'
+                );
+            } else {
+                alert('Erro ao carregar o aplicativo. Por favor, recarregue a página.');
+            }
+        }
     }
-});
+};
+
+// Initialize when the DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.main.init);
+} else {
+    // DOM is already ready
+    window.main.init();
+}
 
 /**
  * Set up event listeners
@@ -154,7 +170,7 @@ function loadInitialData() {
  * @param {string} city - City name
  * @param {string} condominiumSlug - Condominium slug
  */
-function loadAgendaData(city, condominiumSlug) {
+async function loadAgendaData(city, condominiumSlug) {
     // Show loading state
     const submitButton = document.querySelector('#schedule-form button[type="submit"]');
     if (submitButton) {
@@ -168,59 +184,83 @@ function loadAgendaData(city, condominiumSlug) {
         `;
     }
     
-    // In a real app, this would fetch from an API
-    // For now, we'll use the local JSON file
-    // Normalize city name by removing accents and spaces
-    const normalizeString = (str) => {
-        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
-    };
-    
-    const normalizedCity = normalizeString(city);
-    const normalizedSlug = normalizeString(condominiumSlug);
-    const fileName = `${normalizedCity}_${normalizedSlug}.json`;
-    // Use absolute path for GitHub Pages
-    const filePath = `/atendimentoupcarz/data/${fileName}`;
-    
-    fetch(filePath)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Condomínio não encontrado');
+    try {
+        // In a real app, this would fetch from an API
+        // For now, we'll use the local JSON file
+        // Normalize city name by removing accents and spaces
+        const normalizeString = (str) => {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+        };
+        
+        const normalizedCity = normalizeString(city);
+        const normalizedSlug = normalizeString(condominiumSlug);
+        const fileName = `${normalizedCity}_${normalizedSlug}.json`;
+        
+        // Try both relative and absolute paths to work in both local and GitHub Pages environments
+        const pathsToTry = [
+            `data/${fileName}`,  // Local development
+            `/atendimentoupcarz/data/${fileName}`,  // GitHub Pages
+            `./data/${fileName}`  // Alternative local path
+        ];
+        
+        // Function to try loading from a path
+        const tryLoadPath = async (pathIndex) => {
+            if (pathIndex >= pathsToTry.length) {
+                throw new Error('Failed to load data from any path');
             }
-            return response.json();
-        })
-        .then(data => {
-            // Update the UI with the loaded data
-            window.agendaManager.setAgendaData(data);
             
-            // Initialize the agenda with the current week
-            window.agendaManager.init();
+            const path = pathsToTry[pathIndex];
+            console.log(`Trying to load from: ${path}`);
             
-            // Show the agenda section
-            const formSection = document.getElementById('form-section');
-            const agendaSection = document.getElementById('agenda-section');
-            
-            if (formSection && agendaSection) {
-                formSection.classList.add('hidden');
-                agendaSection.classList.remove('hidden');
-                
-                // Scroll to the agenda section
-                setTimeout(() => {
-                    agendaSection.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error('Not found');
+                return { response, path };
+            } catch (error) {
+                console.warn(`Failed to load from ${path}:`, error);
+                return tryLoadPath(pathIndex + 1);
             }
-        })
-        .catch(error => {
-            console.error('Error loading agenda data:', error);
+        };
+        
+        // Start trying paths
+        const { response, path } = await tryLoadPath(0);
+        console.log(`Successfully loaded data from: ${path}`);
+        const data = await response.json();
+        
+        // Update the UI with the loaded data
+        window.agendaManager.setAgendaData(data);
+        
+        // Initialize the agenda with the current week
+        window.agendaManager.init();
+        
+        // Show the agenda section
+        const formSection = document.getElementById('form-section');
+        const agendaSection = document.getElementById('agenda-section');
+        
+        if (formSection && agendaSection) {
+            formSection.classList.add('hidden');
+            agendaSection.classList.remove('hidden');
+            
+            // Scroll to the agenda section
+            setTimeout(() => {
+                agendaSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error loading agenda data:', error);
+        if (window.utils && window.utils.showNotification) {
             window.utils.showNotification(
                 'Não foi possível carregar os horários disponíveis. Por favor, tente novamente.',
                 'error'
             );
-        })
-        .finally(() => {
-            // Reset loading state
-            if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Verificar Disponibilidade';
-            }
-        });
+        } else {
+            alert('Erro ao carregar os horários. Por favor, tente novamente.');
+        }
+    } finally {
+        // Reset loading state
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Verificar Disponibilidade';
+        }
+    }
 }

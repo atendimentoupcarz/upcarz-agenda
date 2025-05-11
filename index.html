@@ -124,9 +124,23 @@
         </div>
     </div>
 
-    <script src="/atendimentoupcarz/src/config.js"></script>
-    <script src="/atendimentoupcarz/src/utils.js"></script>
-    <script src="/atendimentoupcarz/src/agenda.js"></script>
-    <script src="/atendimentoupcarz/src/main.js"></script>
+    <!-- Load config first -->
+    <script src="src/config.js"></script>
+    <!-- Load other scripts with proper order -->
+    <script src="src/utils.js"></script>
+    <script src="src/agenda.js"></script>
+    <script src="src/main.js"></script>
+    
+    <!-- Initialize the app after all scripts are loaded -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // This ensures all scripts are loaded before initializing
+            if (window.main) {
+                window.main.init();
+            } else {
+                console.error('Main script not loaded');
+            }
+        });
+    </script>
 </body>
 </html>
