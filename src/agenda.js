@@ -113,9 +113,12 @@ class AgendaManager {
         // Create the header with micro region info
         let agendaHTML = `
             <div class="bg-blue-50 p-4 mb-4 rounded-lg">
-                <h3 class="text-lg font-semibold">${this.agendaData.location.condominium}</h3>
+                <h3 class="text-lg font-semibold">${this.agendaData.condominio}</h3>
                 <p class="text-sm text-gray-600">
-                    Micro Região: ${window.CONFIG.microRegions[this.agendaData.location.microRegion]}
+                    Cidade: ${this.agendaData.cidade}
+                </p>
+                <p class="text-sm text-gray-600">
+                    Micro Região: ${window.CONFIG.microRegions[this.agendaData.microRegiao]}
                 </p>
             </div>
             <div class="overflow-x-auto">
@@ -220,16 +223,18 @@ class AgendaManager {
      * @returns {boolean} True if the time slot exists in the data
      */
     doesTimeSlotExist(date, timeSlot) {
-        if (!this.agendaData || !this.agendaData.availability) return false;
+        if (!this.agendaData || !this.agendaData.horariosDisponiveis) return false;
         
-        const dateData = this.agendaData.availability[date];
-        if (!dateData) return false;
+        const dayOfWeek = window.utils.getDayOfWeek(new Date(date));
+        const period = parseInt(timeSlot.split(':')[0]) < 12 ? 'manha' : 'tarde';
         
-        // Check if any time slot matches the requested time
-        return dateData.some(slot => {
-            const [startTime] = slot.time.split('-');
-            return startTime === timeSlot;
-        });
+        const daySlots = this.agendaData.horariosDisponiveis[dayOfWeek];
+        if (!daySlots) return false;
+        
+        const periodSlots = daySlots[period];
+        if (!periodSlots) return false;
+        
+        return periodSlots.includes(timeSlot);
     }
     
     /**
@@ -239,16 +244,9 @@ class AgendaManager {
      * @returns {boolean} True if the time slot is available
      */
     isTimeSlotAvailable(date, timeSlot) {
-        if (!this.agendaData || !this.agendaData.availability) return false;
-        
-        const dateData = this.agendaData.availability[date];
-        if (!dateData) return false;
-        
-        // Find a slot that matches the exact time and is available
-        return dateData.some(slot => {
-            const [startTime] = slot.time.split('-');
-            return startTime === timeSlot && slot.available;
-        });
+        // In our current implementation, if a time slot exists, it's available
+        // This can be enhanced later to handle booked slots
+        return this.doesTimeSlotExist(date, timeSlot);
     }
     
     /**
@@ -261,9 +259,26 @@ class AgendaManager {
     isPastTimeSlot(date, hour, minute) {
         const now = new Date();
         const slotDate = new Date(date);
-        slotDate.setHours(hour, minute || 0, 0, 0);
         
-        return slotDate < now;
+        // Set the time for the slot
+        const [slotHour, slotMinute] = [parseInt(hour), parseInt(minute) || 0];
+        slotDate.setHours(slotHour, slotMinute, 0, 0);
+        
+        // Create a date object for comparison at the start of today
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+        
+        // If the slot date is before today, it's definitely in the past
+        if (slotDate < today) {
+            return true;
+        }
+        
+        // If it's today, check the time
+        if (slotDate.toDateString() === now.toDateString()) {
+            return slotDate < now;
+        }
+        
+        return false;
     }
     
     /**
@@ -318,15 +333,26 @@ class AgendaManager {
         // Re-render to show the selected state
         this.renderAgenda();
         
-        // Show a confirmation message (in a real app, this would open a booking form)
-        const formattedDate = new Date(date).toLocaleDateString('pt-BR', { 
-            weekday: 'long', 
+        // Format the date in a user-friendly way
+        const dateObj = new Date(date);
+        const dayOfWeek = window.utils.getDayOfWeek(dateObj);
+        const dayNames = {
+            'domingo': 'Domingo',
+            'segunda': 'Segunda-feira',
+            'terca': 'Terça-feira',
+            'quarta': 'Quarta-feira',
+            'quinta': 'Quinta-feira',
+            'sexta': 'Sexta-feira',
+            'sabado': 'Sábado'
+        };
+        
+        const formattedDate = dateObj.toLocaleDateString('pt-BR', { 
             day: 'numeric', 
-            month: 'long' 
+            month: 'long'
         });
         
         window.utils.showNotification(
-            `Você selecionou ${formattedDate} às ${timeSlot}. Em breve, você poderá confirmar o agendamento aqui.`,
+            `Você selecionou ${dayNames[dayOfWeek]}, ${formattedDate} às ${timeSlot}.`,
             'info'
         );
     }

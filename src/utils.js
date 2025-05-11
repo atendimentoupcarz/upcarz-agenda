@@ -101,10 +101,21 @@ function showNotification(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
+/**
+ * Get the day of the week in Portuguese (lowercase)
+ * @param {Date} date - The date to get the day for
+ * @returns {string} The day of the week in Portuguese (segunda, terca, etc.)
+ */
+function getDayOfWeek(date) {
+    const days = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+    return days[date.getDay()];
+}
+
 // Export the utility functions
 window.utils = {
     formatDate,
     getWeekRange,
+    getDayOfWeek,
     getWeekDates,
     formatTime,
     debounce,

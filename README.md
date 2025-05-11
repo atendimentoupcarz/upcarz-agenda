@@ -1,57 +1,70 @@
 # Upcarz Scheduler
 
-A responsive and modern scheduling interface for Upcarz, allowing users to check available time slots for car washing services.
+A responsive and modern scheduling interface for Upcarz, allowing users to check available time slots for car washing services in Jundiaí condominiums.
 
 ## Features
 
-- City and condominium selection with dynamic dropdowns
+- Condominium selection with dynamic dropdown
 - Weekly calendar view with available time slots
 - Responsive design that works on mobile and desktop
 - Visual indicators for available and unavailable time slots
-- Easy integration with Google Sheets API (simulated with JSON files in this demo)
+- Local JSON data storage (can be replaced with API calls)
 
 ## Project Structure
 
 ```
 upcarz-scheduler/
-├── data/                    # Sample JSON data files (simulating Google Sheets)
-│   └── Campinas_JardimdosLagos.json
+├── data/                     # JSON data files for each condominium
+│   ├── Jundiai_BrisasdaMata.json
+│   ├── Jundiai_BrisasJundiai.json
+│   └── ... (other condominium files)
 ├── src/
-│   ├── config.js           # Configuration and constants
-│   ├── utils.js            # Utility functions
-│   ├── agenda.js           # Agenda management and rendering
-│   └── main.js             # Main application logic
-├── index.html              # Main HTML file
-└── README.md               # This file
+│   ├── config.js            # Configuration and constants
+│   ├── utils.js             # Utility functions
+│   ├── agenda.js            # Agenda management and rendering
+│   └── main.js              # Main application logic
+├── index.html               # Main HTML file
+├── .gitignore               # Git ignore file
+└── README.md                # This file
 ```
 
 ## Setup and Installation
 
 1. Clone this repository or download the files to your local machine.
-2. Open `index.html` in a modern web browser to view the application.
+2. For local development, serve the files using a local web server:
+   - Install Python if you don't have it
+   - Open a terminal in the project directory
+   - Run: `python -m http.server 8000`
+   - Open `http://localhost:8000` in your browser
 
 ## How to Use
 
-1. Select your city from the dropdown menu.
-2. Choose your condominium from the second dropdown.
-3. View the available time slots in the weekly calendar.
-4. Click on an available time slot to select it.
+1. Select your condominium from the dropdown menu.
+2. View the available time slots in the weekly calendar.
+3. Click on an available time slot to select it.
 
 ## Data Structure
 
-The application expects data in the following format (matching Google Sheets structure):
+The application expects data in the following format:
 
 ```json
 {
-    "location": {
-        "city": "City Name",
-        "condominium": "Condominium Name"
-    },
-    "availability": {
-        "YYYY-MM-DD": [
-            { "time": "8-10", "available": true },
-            { "time": "10-12", "available": false },
-            // ... more time slots
+    "condominio": "Condominium Name",
+    "cidade": "Jundiaí",
+    "microRegiao": 1,
+    "horariosDisponiveis": {
+        "segunda": {
+            "manha": ["08:00", "08:30", ...],
+            "tarde": ["12:00", "12:30", ...]
+        },
+        "terca": {
+            "manha": ["08:00", "08:30", ...],
+            "tarde": ["12:00", "12:30", ...]
+        },
+        ...
+    }
+}
+
         ]
         // ... more dates
     }

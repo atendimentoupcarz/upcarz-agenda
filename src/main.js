@@ -185,8 +185,6 @@ async function loadAgendaData(city, condominiumSlug) {
     }
     
     try {
-        // In a real app, this would fetch from an API
-        // For now, we'll use the local JSON file
         // Normalize city name by removing accents and spaces
         const normalizeString = (str) => {
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
@@ -194,66 +192,50 @@ async function loadAgendaData(city, condominiumSlug) {
         
         const normalizedCity = normalizeString(city);
         const normalizedSlug = normalizeString(condominiumSlug);
-        const fileName = `${normalizedCity}_${normalizedSlug}.json`;
+        const sheetName = `${normalizedCity}_${normalizedSlug}`;
         
-        // Get the base URL for the current environment
-        const baseUrl = window.location.hostname === 'localhost' ? '' : '/upcarz-agenda';
+        console.log(`Attempting to load data for: ${sheetName}`);
         
-        // Try different path formats to work in both local and GitHub Pages environments
-        const pathsToTry = [
-            `${baseUrl}/data/${fileName}`,  // Production path with base URL
-            `data/${fileName}`,             // Local development
-            `/data/${fileName}`,            // Alternative local path
-            `./data/${fileName}`            // Another alternative local path
-        ];
+        // Try to find the data file in LOCAL_DATA_MAPPING
+        const mappedFileName = window.LOCAL_DATA_MAPPING && window.LOCAL_DATA_MAPPING[sheetName];
         
-        // Function to try loading from a path
-        const tryLoadPath = async (pathIndex) => {
-            if (pathIndex >= pathsToTry.length) {
-                throw new Error('Failed to load data from any path');
-            }
-            
-            const path = pathsToTry[pathIndex];
-            console.log(`Trying to load from: ${path}`);
-            
-            try {
-                const response = await fetch(path);
-                if (!response.ok) {
-                    console.warn(`Response not OK for ${path}:`, response.status, response.statusText);
-                    throw new Error('Not found');
-                }
-                console.log(`Successfully loaded from: ${path}`);
-                return { response, path };
-            } catch (error) {
-                console.warn(`Failed to load from ${path}:`, error);
-                return tryLoadPath(pathIndex + 1);
-            }
-        };
+        if (!mappedFileName) {
+            throw new Error(`Condomínio não encontrado: ${condominiumSlug}`);
+        }
         
-        // Start trying paths
-        const { response, path } = await tryLoadPath(0);
-        console.log(`Successfully loaded data from: ${path}`);
+        console.log(`Loading data from: data/${mappedFileName}`);
+        
+        // Try to load the data file
+        const response = await fetch(`data/${mappedFileName}`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load data file: ${mappedFileName} (${response.status} ${response.statusText})`);
+        }
+        
         const data = await response.json();
-        console.log('Loaded data:', data);
+        console.log('Successfully loaded data:', data);
         
         // Update the UI with the loaded data
-        window.agendaManager.setAgendaData(data);
+        if (!window.agendaManager) {
+            console.error('AgendaManager not initialized');
+            throw new Error('Erro ao carregar o gerenciador de agenda');
+        }
         
-        // Initialize the agenda with the current week
+        window.agendaManager.setAgendaData(data);
         window.agendaManager.init();
         
         // Show the agenda section
         const formSection = document.getElementById('form-section');
         const agendaSection = document.getElementById('agenda-section');
+        const loadingState = document.getElementById('loading-state');
         
-        if (formSection && agendaSection) {
+        if (formSection && agendaSection && loadingState) {
             formSection.classList.add('hidden');
+            loadingState.classList.add('hidden');
             agendaSection.classList.remove('hidden');
             
-            // Scroll to the agenda section
-            setTimeout(() => {
-                agendaSection.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            // Scroll to the agenda section for better UX
+            agendaSection.scrollIntoView({ behavior: 'smooth' });
         }
     } catch (error) {
         console.error('Error loading agenda data:', error);

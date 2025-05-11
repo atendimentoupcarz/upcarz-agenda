@@ -124,21 +124,43 @@
         </div>
     </div>
 
-    <!-- Load config first -->
-    <script src="src/config.js"></script>
-    <!-- Load other scripts with proper order -->
-    <script src="src/utils.js"></script>
-    <script src="src/agenda.js"></script>
-    <script src="src/main.js"></script>
-    
-    <!-- Initialize the app after all scripts are loaded -->
+    <!-- Load scripts with error handling -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // This ensures all scripts are loaded before initializing
-            if (window.main) {
-                window.main.init();
-            } else {
-                console.error('Main script not loaded');
+        function loadScript(src, onload) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    console.log(`Loaded script: ${src}`);
+                    if (onload) onload();
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error(`Failed to load script: ${src}`);
+                    reject(new Error(`Failed to load script: ${src}`));
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        // Load scripts in order
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadScript('src/config.js');
+                await loadScript('src/utils.js');
+                await loadScript('src/agenda.js');
+                await loadScript('src/main.js');
+                
+                console.log('All scripts loaded, initializing app...');
+                if (window.main && typeof window.main.init === 'function') {
+                    window.main.init();
+                } else {
+                    console.error('Main script not properly initialized');
+                    alert('Erro ao carregar o aplicativo. Por favor, recarregue a página.');
+                }
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                alert('Erro ao carregar o aplicativo. Por favor, verifique o console para mais detalhes.');
             }
         });
     </script>
