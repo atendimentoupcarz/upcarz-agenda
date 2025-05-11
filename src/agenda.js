@@ -99,7 +99,6 @@ class AgendaManager {
         } catch (error) {
             console.error('Error loading agenda:', error);
             window.showError('Não foi possível carregar a agenda. Por favor, tente novamente.');
-            throw error;
         }
     }
 
@@ -111,39 +110,37 @@ class AgendaManager {
         // For now, we'll simulate a delay and return mock data
         return new Promise((resolve) => {
             setTimeout(() => {
-                // Generate mock data for the next 7 days
-                const weekData = [];
+                // Generate mock data for the next 14 days
+                const daysData = [];
                 const today = new Date();
+                today.setHours(0, 0, 0, 0);
                 
-                for (let i = 0; i < 7; i++) {
+                for (let i = 0; i < 14; i++) {
                     const date = new Date(today);
                     date.setDate(today.getDate() + i);
                     
                     const dayData = {
                         date: date.toISOString().split('T')[0],
                         day: window.utils.getDayOfWeek(date),
+                        dateObj: new Date(date),
                         slots: {}
                     };
                     
                     // Add some random availability
                     const periods = ['manha', 'tarde'];
                     periods.forEach(period => {
-                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => {
-                            // Make some slots unavailable (for demo purposes)
-                            const isAvailable = Math.random() > 0.3;
-                            return {
-                                time: slot,
-                                available: isAvailable,
-                                booked: false
-                            };
-                        });
+                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => ({
+                            time: slot,
+                            available: Math.random() > 0.4, // 60% chance of being available
+                            booked: false
+                        }));
                     });
                     
-                    weekData.push(dayData);
+                    daysData.push(dayData);
                 }
                 
-                resolve(weekData);
-            }, 500);
+                resolve(daysData);
+            }, 300);
         });
     }
 
@@ -159,35 +156,315 @@ class AgendaManager {
             return;
         }
         
-        // Get the current week range
-        const weekRange = window.utils.getWeekRange();
-        
         // Generate the agenda HTML
         let html = `
-            <div class="bg-white rounded-lg overflow-hidden">
-                <!-- Week Navigation -->
-                <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                    <button id="prev-week" class="text-gray-600 hover:text-gray-800 focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    
-                    <div id="week-range" class="text-sm font-medium text-gray-700">
-                        ${this.formatWeekRange(weekRange.startDate, weekRange.endDate)}
-                    </div>
-                    
-                    <button id="next-week" class="text-gray-600 hover:text-gray-800 focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+            <div class="bg-white rounded-xl shadow-card overflow-hidden">
+                <!-- Header -->
+                <div class="bg-primary-600 px-6 py-4">
+                    <h2 class="text-xl font-bold text-white">Agenda de Horários</h2>
+                    <p class="text-primary-100 text-sm mt-1">Selecione um horário disponível</p>
                 </div>
                 
                 <!-- Days Grid -->
                 <div class="overflow-x-auto">
                     <div class="min-w-max">
-                        <div class="grid grid-cols-7 divide-x divide-gray-200">
+                        <div class="grid grid-cols-7 divide-x divide-gray-100">
+                            ${this.agendaData.map(day => this.renderDayColumn(day)).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            
+        agendaContainer.innerHTML = html;
+    }
+
+    /**
+     * Render a day column in the agenda
+     */
+    renderDayColumn(dayData) {
+        const date = dayData.dateObj || new Date(dayData.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const isToday = date.toDateString() === today.toDateString();
+        const isPast = date < today && !isToday;
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        
+        // Format date for display
+        const dayNumber = date.getDate();
+        const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const monthName = monthNames[date.getMonth()];
+        const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
+        
+        // Count available slots
+        let availableSlots = 0;
+        Object.values(dayData.slots).forEach(period => {
+            availableSlots += period.filter(slot => slot.available).length;
+        });
+        
+        // Generate time slots HTML
+        let timeSlotsHtml = '';
+        
+        // Morning slots
+        if (dayData.slots.manha && dayData.slots.manha.length > 0) {
+            timeSlotsHtml += `
+                <div class="mb-3">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">Manhã</h4>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        ${dayData.slots.manha.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
+                    </div>
+                </div>`;
+        }
+        
+        // Afternoon slots
+        if (dayData.slots.tarde && dayData.slots.tarde.length > 0) {
+            timeSlotsHtml += `
+                <div class="mb-3">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">Tarde</h4>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        ${dayData.slots.tarde.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
+                    </div>
+                </div>`;
+        }
+        
+        // Generate availability badge
+        let availabilityBadge = '';
+        if (availableSlots > 0) {
+            availabilityBadge = `
+                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                    ${availableSlots} vaga${availableSlots > 1 ? 's' : ''}
+                </span>`;
+        } else {
+            availabilityBadge = `
+                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-red-800 bg-red-100 rounded-full">
+                    Esgotado
+                </span>`;
+        }
+        
+        const todayIndicator = isToday ? 
+            '<div class="mt-1 h-0.5 w-1/2 mx-auto bg-primary-500 rounded-full"></div>' : 
+            '';
+        
+        const noSlotsMessage = !timeSlotsHtml ? 
+            '<p class="text-xs text-gray-500 text-center py-4">Nenhum horário disponível</p>' : 
+            timeSlotsHtml;
+        
+        return `
+            <div class="p-3 border-r border-gray-100 last:border-r-0 ${isPast ? 'opacity-50' : ''} ${isWeekend ? 'bg-gray-50' : 'bg-white'}" 
+                 data-date="${dayData.date}">
+                <div class="text-center mb-3">
+                    <div class="text-sm font-medium text-gray-900">${dayName}</div>
+                    <div class="text-xs text-gray-500">${dayNumber} ${monthName}</div>
+                    ${availabilityBadge}
+                    ${todayIndicator}
+                </div>
+                <div class="h-80 overflow-y-auto pr-1">
+                    ${noSlotsMessage}
+                </div>
+            </div>`;
+    }
+
+    /**
+     * Render a time slot button
+     */
+    renderTimeSlot(slot, isPast) {
+        const isAvailable = slot.available && !isPast && !slot.booked;
+        const isBooked = slot.booked;
+        const isUnavailable = !slot.available || isPast;
+        
+        let buttonClass = 'time-slot text-sm py-1.5 px-2 rounded-md text-center transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-500';
+        
+        if (isBooked) {
+            buttonClass += ' bg-red-50 text-red-500 border border-red-100 cursor-not-allowed';
+        } else if (isUnavailable) {
+            buttonClass += ' bg-gray-100 text-gray-400 cursor-not-allowed';
+        } else {
+            buttonClass += ' bg-green-50 text-green-700 hover:bg-green-100 border border-green-100 hover:border-green-200';
+        }
+        
+        return `
+            <button 
+                class="${buttonClass}"
+                ${!isAvailable ? 'disabled' : ''}
+                data-time="${slot.time}"
+                data-available="${isAvailable}"
+                title="${isAvailable ? 'Clique para agendar' : 'Horário indisponível'}">
+                ${slot.time}
+            </button>`;
+    }
+
+    /**
+     * Format a date range for display
+     */
+    formatWeekRange(startDate, endDate) {
+        const startDay = startDate.getDate();
+        const startMonth = startDate.toLocaleString('pt-BR', { month: 'short' });
+        const endDay = endDate.getDate();
+        const endMonth = endDate.toLocaleString('pt-BR', { month: 'short' });
+        const year = endDate.getFullYear();
+        
+        if (startMonth === endMonth) {
+            return `${startDay} - ${endDay} ${startMonth} ${year}`;
+        } else {
+            return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
+        }
+    }
+
+    /**
+     * Navigate to previous or next week
+     */
+    navigateWeek(direction) {
+        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
+        
+        // Reload agenda data for the new week
+        if (this.currentCity && this.currentCondominium) {
+            this.loadAgenda(this.currentCity, this.currentCondominium);
+        }
+    }
+
+    /**
+     * Handle time slot click
+     */
+    handleTimeSlotClick(event) {
+        const button = event.target.closest('.time-slot');
+        if (!button) return;
+        
+        const time = button.dataset.time;
+        const date = button.closest('[data-date]').dataset.date;
+        const isAvailable = button.dataset.available === 'true';
+        
+        if (!isAvailable) return;
+        
+        this.selectedDate = date;
+        this.selectedTime = time;
+        
+        // Show booking form or modal
+        this.showBookingForm(date, time);
+    }
+
+    /**
+     * Show booking form/modal
+     */
+    showBookingForm(date, time) {
+        // In a real app, this would show a modal with a form
+        // For now, we'll just log the selection
+        console.log(`Selected time: ${date} at ${time}`);
+        
+        // Show a confirmation dialog
+        if (confirm(`Deseja agendar para ${date} às ${time}?`)) {
+            this.submitBooking();
+        }
+    }
+
+    /**
+     * Submit a booking
+     */
+    async submitBooking() {
+        try {
+            // In a real app, this would be an API call
+            // For now, we'll just log the booking
+            console.log('Submitting booking:', {
+                date: this.selectedDate,
+                time: this.selectedTime,
+                condominium: this.currentCondominium
+            });
+            
+            // Add to booked slots
+            const slotKey = `${this.selectedDate}_${this.selectedTime}`;
+            this.bookedSlots.add(slotKey);
+            
+            // Show success message
+            window.showSuccess('Agendamento realizado com sucesso!');
+            
+            // Reload agenda to reflect the booking
+            if (this.currentCity && this.currentCondominium) {
+                await this.loadAgenda(this.currentCity, this.currentCondominium);
+            }
+            
+            // Reset selection
+            this.selectedDate = null;
+            this.selectedTime = null;
+            
+        } catch (error) {
+            console.error('Error submitting booking:', error);
+            window.showError('Não foi possível realizar o agendamento. Por favor, tente novamente.');
+        }
+    }
+            throw error;
+        }
+    }
+
+    /**
+     * Fetch agenda data (mocked for now)
+     */
+    async fetchAgendaData(city, condominium) {
+        // In a real app, this would be an API call
+        // For now, we'll simulate a delay and return mock data
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Generate mock data for the next 14 days
+                const daysData = [];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                for (let i = 0; i < 14; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    
+                    const dayData = {
+                        date: date.toISOString().split('T')[0],
+                        day: window.utils.getDayOfWeek(date),
+                        dateObj: new Date(date),
+                        slots: {}
+                    };
+                    
+                    // Add some random availability
+                    const periods = ['manha', 'tarde'];
+                    periods.forEach(period => {
+                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => {
+                            // Make some slots unavailable (for demo purposes)
+                            const isAvailable = Math.random() > 0.4; // Increased availability for demo
+                            return {
+                                time: slot,
+                                available: isAvailable,
+                                booked: false
+                            };
+                        });
+                    });
+                    
+                    daysData.push(dayData);
+                }
+                
+                resolve(daysData);
+            }, 300);
+        });
+    }
+
+    /**
+     * Render the agenda view
+     */
+    renderAgenda() {
+        const agendaContainer = document.getElementById('agenda');
+        if (!agendaContainer) return;
+        
+        if (!this.agendaData || this.agendaData.length === 0) {
+            agendaContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhum horário disponível para o período selecionado.</p>';
+            return;
+        }
+        
+        // Generate the agenda HTML
+        let html = `
+            <div class="bg-white rounded-xl shadow-card overflow-hidden">
+                <!-- Header -->
+                <div class="bg-primary-600 px-6 py-4">
+                    <h2 class="text-xl font-bold text-white">Agenda de Horários</h2>
+                    <p class="text-primary-100 text-sm mt-1">Selecione um horário disponível</p>
+                </div>
+                
+                <!-- Days Grid -->
+                <div class="overflow-x-auto">
+                    <div class="min-w-max">
+                        <div class="grid grid-cols-7 divide-x divide-gray-100">
                             ${this.agendaData.map(day => this.renderDayColumn(day)).join('')}
                         </div>
                     </div>
@@ -229,10 +506,13 @@ class AgendaManager {
      * Render a day column in the agenda
      */
     renderDayColumn(dayData) {
-        const date = new Date(dayData.date);
+        const date = dayData.dateObj || new Date(dayData.date);
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         const isToday = date.toDateString() === today.toDateString();
         const isPast = date < today && !isToday;
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
         
         // Format date for display
         const dayNumber = date.getDate();
@@ -240,109 +520,28 @@ class AgendaManager {
         const monthName = monthNames[date.getMonth()];
         const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
         
+        // Count available slots
+        let availableSlots = 0;
+        Object.values(dayData.slots).forEach(period => {
+            availableSlots += period.filter(slot => slot.available).length;
+        });
+        
         // Generate time slots HTML
-        let timeSlotsHtml = '';
-        
-        // Morning slots
-        if (dayData.slots.manha && dayData.slots.manha.length > 0) {
-            timeSlotsHtml += `
-                <div class="mb-4">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Manhã</h4>
-                    <div class="space-y-1">
-                        ${dayData.slots.manha.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Afternoon slots
-        if (dayData.slots.tarde && dayData.slots.tarde.length > 0) {
-            timeSlotsHtml += `
-                <div class="mb-4">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tarde</h4>
-                    <div class="space-y-1">
-                        ${dayData.slots.tarde.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        return `
-            <div class="p-2 ${isPast ? 'opacity-50' : ''}">
-                <div class="text-center mb-3">
-                    <div class="text-sm font-medium text-gray-900">${dayName}</div>
-                    <div class="text-xs text-gray-500">${dayNumber} ${monthName}</div>
-                    ${isToday ? '<div class="mt-1 h-1 w-1/2 mx-auto bg-blue-500 rounded-full"></div>' : ''}
-                </div>
-                <div class="h-64 overflow-y-auto">
-                    ${timeSlotsHtml || '<p class="text-xs text-gray-500 text-center py-4">Nenhum horário disponível</p>'}
-                </div>
-            </div>
-        `;
-    }
     
-    /**
-     * Render a time slot button
-     */
-    renderTimeSlot(slot, isPast) {
-        const isAvailable = slot.available && !isPast && !slot.booked;
-        const isBooked = slot.booked;
-        const isUnavailable = !slot.available || isPast;
-        
-        let buttonClass = 'time-slot w-full text-left';
-        let buttonContent = slot.time;
-        
-        if (isBooked) {
-            buttonClass += ' bg-red-50 text-red-400 cursor-not-allowed';
-            buttonContent += ' (Indisponível)';
-        } else if (isUnavailable) {
-            buttonClass += ' bg-gray-100 text-gray-400 cursor-not-allowed';
-            buttonContent += ' (Indisponível)';
-        } else {
-            buttonClass += ' bg-green-100 text-green-800 hover:bg-green-200';
-            buttonContent += ' (Disponível)';
-        }
-        
-        return `
-            <button 
-                class="${buttonClass}"
-                ${!isAvailable ? 'disabled' : ''}
-                data-time="${slot.time}"
-                data-available="${isAvailable}"
-            >
-                ${buttonContent}
-            </button>
-        `;
-    }
+    // Format date for display
+    const dayNumber = date.getDate();
+    const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const monthName = monthNames[date.getMonth()];
+    const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
     
-    /**
-     * Format a date range for display
-     */
-    formatWeekRange(startDate, endDate) {
-        const startDay = startDate.getDate();
-        const startMonth = startDate.toLocaleString('pt-BR', { month: 'short' });
-        const endDay = endDate.getDate();
-        const endMonth = endDate.toLocaleString('pt-BR', { month: 'short' });
-        const year = endDate.getFullYear();
-        
-        if (startMonth === endMonth) {
-            return `${startDay} - ${endDay} ${startMonth} ${year}`;
-        } else {
-            return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
-        }
-    }
+    // Count available slots
+    let availableSlots = 0;
+    Object.values(dayData.slots).forEach(period => {
+        availableSlots += period.filter(slot => slot.available).length;
+    });
     
-    /**
-     * Navigate to previous or next week
-     */
-    navigateWeek(direction) {
-        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
-        
-        // Reload agenda data for the new week
-        if (this.currentCity && this.currentCondominium) {
-            this.loadAgenda(this.currentCity, this.currentCondominium);
-        }
-    }
+    // Generate time slots HTML
+    let timeSlotsHtml = '';
     
     /**
      * Handle time slot click
