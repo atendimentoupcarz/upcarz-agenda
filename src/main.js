@@ -123,16 +123,30 @@ function handleFormSubmit(event) {
  * Load initial data
  */
 function loadInitialData() {
-    // Set the city to Jundiaí
-    const citySelect = document.getElementById('city');
-    if (citySelect) {
-        citySelect.innerHTML = `
-            <option value="Jundiaí" selected>Jundiaí</option>
-        `;
+    try {
+        // Set the city to Jundiaí
+        const citySelect = document.getElementById('city');
+        if (citySelect) {
+            citySelect.innerHTML = `
+                <option value="Jundiaí" selected>Jundiaí</option>
+            `;
+        }
+        
+        // Update condominiums for the selected city
+        updateCondominiums();
+        
+        // Enable the condominium select
+        const condominiumSelect = document.getElementById('condominium');
+        if (condominiumSelect) {
+            condominiumSelect.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error loading initial data:', error);
+        window.utils.showNotification(
+            'Ocorreu um erro ao carregar a lista de condomínios. Por favor, recarregue a página.',
+            'error'
+        );
     }
-    
-    // Update condominiums for the selected city
-    updateCondominiums();
 }
 
 /**

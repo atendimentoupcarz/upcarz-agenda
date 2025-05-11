@@ -38,11 +38,21 @@ const CONFIG = {
         // Evening period removed as requested
     },
 
-    // Available cities and their condominiums
-    locations: {
-        'Campinas': ['Jardim dos Lagos', 'Parque das Universidades', 'Alphaville Campinas'],
-        'São Paulo': ['Alphaville', 'Morumbi', 'Vila Olímpia'],
-        'Curitiba': ['Ecoville', 'Batel', 'Água Verde']
+    // City configuration
+    city: {
+        name: 'Jundiaí',
+        condominiums: [
+            { name: 'Brisas da Mata', slug: 'BrisasdaMata', microRegion: 2 },
+            { name: 'Brisas Jundiaí', slug: 'BrisasJundiai', microRegion: 1 },
+            { name: 'Canto da Natureza', slug: 'CantodaNatureza', microRegion: 5 },
+            { name: 'Garden Resort', slug: 'GardenResort', microRegion: 4 },
+            { name: 'Jardim Atenas', slug: 'JardimAtenas', microRegion: 2 },
+            { name: 'Reserva da Mata', slug: 'ReservadaMata', microRegion: 3 },
+            { name: 'Reserva Marajoara', slug: 'ReservaMarajoara', microRegion: 2 },
+            { name: 'Village das Flores', slug: 'VillagedasFlores', microRegion: 2 },
+            { name: 'Villaggio da Serra', slug: 'VillaggiodaSerra', microRegion: 2 },
+            { name: 'Jardim Santa Teresa', slug: 'JardimSantaTeresa', microRegion: 2 }
+        ]
     },
 
     // For demo purposes, we'll use local JSON files
