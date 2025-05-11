@@ -196,11 +196,15 @@ async function loadAgendaData(city, condominiumSlug) {
         const normalizedSlug = normalizeString(condominiumSlug);
         const fileName = `${normalizedCity}_${normalizedSlug}.json`;
         
-        // Try both relative and absolute paths to work in both local and GitHub Pages environments
+        // Get the base URL for the current environment
+        const baseUrl = window.location.hostname === 'localhost' ? '' : '/upcarz-agenda';
+        
+        // Try different path formats to work in both local and GitHub Pages environments
         const pathsToTry = [
-            `data/${fileName}`,  // Local development
-            `/atendimentoupcarz/data/${fileName}`,  // GitHub Pages
-            `./data/${fileName}`  // Alternative local path
+            `${baseUrl}/data/${fileName}`,  // Production path with base URL
+            `data/${fileName}`,             // Local development
+            `/data/${fileName}`,            // Alternative local path
+            `./data/${fileName}`            // Another alternative local path
         ];
         
         // Function to try loading from a path
@@ -214,7 +218,11 @@ async function loadAgendaData(city, condominiumSlug) {
             
             try {
                 const response = await fetch(path);
-                if (!response.ok) throw new Error('Not found');
+                if (!response.ok) {
+                    console.warn(`Response not OK for ${path}:`, response.status, response.statusText);
+                    throw new Error('Not found');
+                }
+                console.log(`Successfully loaded from: ${path}`);
                 return { response, path };
             } catch (error) {
                 console.warn(`Failed to load from ${path}:`, error);
@@ -226,6 +234,7 @@ async function loadAgendaData(city, condominiumSlug) {
         const { response, path } = await tryLoadPath(0);
         console.log(`Successfully loaded data from: ${path}`);
         const data = await response.json();
+        console.log('Loaded data:', data);
         
         // Update the UI with the loaded data
         window.agendaManager.setAgendaData(data);
