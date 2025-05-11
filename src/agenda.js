@@ -22,6 +22,19 @@ class AgendaManager {
     /**
      * Initialize the agenda with the current week
      */
+    /**
+     * Set the agenda data and re-render the agenda
+     * @param {Object} data - The agenda data to display
+     */
+    setAgendaData(data) {
+        console.log('Setting agenda data:', data);
+        this.agendaData = data;
+        // If we already have a week start, re-render with the new data
+        if (this.currentWeekStart) {
+            this.renderAgenda();
+        }
+    }
+    
     init() {
         this.currentWeekStart = new Date();
         // Reset to the start of the current week
@@ -29,8 +42,16 @@ class AgendaManager {
         this.currentWeekStart = weekRange.startDate;
         
         // Set up event listeners
-        document.getElementById('prev-week').addEventListener('click', () => this.changeWeek(-1));
-        document.getElementById('next-week').addEventListener('click', () => this.changeWeek(1));
+        const prevWeekBtn = document.getElementById('prev-week');
+        const nextWeekBtn = document.getElementById('next-week');
+        
+        if (prevWeekBtn) {
+            prevWeekBtn.addEventListener('click', () => this.changeWeek(-1));
+        }
+        
+        if (nextWeekBtn) {
+            nextWeekBtn.addEventListener('click', () => this.changeWeek(1));
+        }
         
         // Initial render
         this.updateWeekNavigation();

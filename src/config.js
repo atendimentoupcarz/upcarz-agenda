@@ -71,12 +71,26 @@ function getSheetName(city, condominium) {
 // For local development, we'll use this to map sheet names to JSON files
 // In a real implementation, this would be replaced with actual API calls
 const LOCAL_DATA_MAPPING = {
+    // Campinas
     'Campinas_JardimdosLagos': 'Campinas_JardimdosLagos.json',
     'Campinas_ParquedasUniversidades': 'Campinas_ParquedasUniversidades.json',
     'Campinas_AlphavilleCampinas': 'Campinas_AlphavilleCampinas.json',
+    // Jundiaí
+    'Jundiai_BrisasdaMata': 'Jundiai_BrisasdaMata.json',
+    'Jundiai_BrisasJundiai': 'Jundiai_BrisasJundiai.json',
+    'Jundiai_CantodaNatureza': 'Jundiai_CantodaNatureza.json',
+    'Jundiai_GardenResort': 'Jundiai_GardenResort.json',
+    'Jundiai_JardimAtenas': 'Jundiai_JardimAtenas.json',
+    'Jundiai_ReservadaMata': 'Jundiai_ReservadaMata.json',
+    'Jundiai_ReservaMarajoara': 'Jundiai_ReservaMarajoara.json',
+    'Jundiai_VillagedasFlores': 'Jundiai_VillagedasFlores.json',
+    'Jundiai_VillaggiodaSerra': 'Jundiai_VillaggiodaSerra.json',
+    'Jundiai_JardimSantaTeresa': 'Jundiai_JardimSantaTeresa.json',
+    // São Paulo
     'SãoPaulo_Alphaville': 'SaoPaulo_Alphaville.json',
     'SãoPaulo_Morumbi': 'SaoPaulo_Morumbi.json',
     'SãoPaulo_VilaOlimpia': 'SaoPaulo_VilaOlimpia.json',
+    // Curitiba
     'Curitiba_Ecoville': 'Curitiba_Ecoville.json',
     'Curitiba_Batel': 'Curitiba_Batel.json',
     'Curitiba_AguaVerde': 'Curitiba_AguaVerde.json'
