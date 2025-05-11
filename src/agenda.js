@@ -108,37 +108,56 @@ class AgendaManager {
         if (!this.agendaData) return;
         
         const agendaElement = document.getElementById('agenda');
+        if (!agendaElement) {
+            console.error('Agenda element not found in the DOM');
+            return;
+        }
+        
         const weekDates = window.utils.getWeekDates(this.currentWeekStart);
         
-        // Create the header with micro region info
-        let agendaHTML = `
-            <div class="bg-blue-50 p-4 mb-4 rounded-lg">
-                <h3 class="text-lg font-semibold">${this.agendaData.condominio}</h3>
-                <p class="text-sm text-gray-600">
-                    Cidade: ${this.agendaData.cidade}
-                </p>
-                <p class="text-sm text-gray-600">
-                    Micro Região: ${window.CONFIG.microRegions[this.agendaData.microRegiao]}
-                </p>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead>
-                        <tr class="border-b border-gray-200">
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>
-                            ${weekDates.map(date => {
-                                const isToday = date.toDateString() === new Date().toDateString();
-                                const dayClass = isToday ? 'bg-blue-50 text-blue-700' : 'text-gray-700';
-                                return `
-                                    <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${dayClass}">
-                                        <div class="font-medium">${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
-                                        <div class="text-lg font-semibold">${date.getDate()}</div>
-                                    </th>`;
-                            }).join('')}
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-        `;
+        try {
+            // Create the header with micro region info
+            let agendaHTML = `
+                <div class="bg-blue-50 p-4 mb-4 rounded-lg">
+                    <h3 class="text-lg font-semibold">${this.agendaData.condominio || 'Condomínio não especificado'}</h3>
+                    <p class="text-sm text-gray-600">
+                        Cidade: ${this.agendaData.cidade || 'Não especificada'}
+                    </p>`;
+                    
+            // Add micro region if available
+            if (window.CONFIG?.microRegions && this.agendaData.microRegiao !== undefined) {
+                const microRegionName = window.CONFIG.microRegions[this.agendaData.microRegiao] || 'Não especificada';
+                agendaHTML += `
+                    <p class="text-sm text-gray-600">
+                        Micro Região: ${microRegionName}
+                    </p>`;
+            }
+            
+            // Start the table
+            agendaHTML += `
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>`;
+            
+            // Add day headers
+            weekDates.forEach(date => {
+                const isToday = date.toDateString() === new Date().toDateString();
+                const dayClass = isToday ? 'bg-blue-50 text-blue-700' : 'text-gray-700';
+                agendaHTML += `
+                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${dayClass}">
+                                    <div class="font-medium">${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
+                                    <div class="text-lg font-semibold">${date.getDate()}</div>
+                                </th>`;
+            });
+            
+            // Close the header and start the table body
+            agendaHTML += `
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">`;
         
         // Add time slots for each period
         Object.entries(window.CONFIG.timeSlots).forEach(([period, { label, slots }]) => {
@@ -183,9 +202,9 @@ class AgendaManager {
                             buttonClass += ' opacity-50';
                         }
                     } else if (isAvailable) {
-                        buttonClass += 'bg-green-100 text-green-800 hover:bg-green-200';
+                        buttonClass += ' bg-green-100 text-green-800 hover:bg-green-200';
                     } else {
-                        buttonClass += 'bg-red-50 text-red-600 line-through cursor-not-allowed';
+                        buttonClass += ' bg-red-50 text-red-600 line-through cursor-not-allowed';
                     }
                     
                     agendaHTML += `
@@ -213,7 +232,11 @@ class AgendaManager {
             </div>
         `;
         
-        agendaElement.innerHTML = agendaHTML;
+            agendaElement.innerHTML = agendaHTML;
+        } catch (error) {
+            console.error('Error rendering agenda:', error);
+            window.utils.showNotification('Ocorreu um erro ao carregar a agenda. Por favor, tente novamente.', 'error');
+        }
     }
     
     /**
@@ -295,29 +318,38 @@ class AgendaManager {
      * Update the week navigation display
      */
     updateWeekNavigation() {
-        const weekRange = window.utils.getWeekRange(this.currentWeekStart);
         const weekRangeElement = document.getElementById('week-range');
+        if (!weekRangeElement) {
+            console.warn('Week range element not found in the DOM');
+            return;
+        }
         
-        const startDate = weekRange.startDate.toLocaleDateString('pt-BR', { 
-            day: 'numeric', 
-            month: 'short' 
-        });
-        
-        const endDate = weekRange.endDate.toLocaleDateString('pt-BR', { 
-            day: 'numeric', 
-            month: 'short',
-            year: 'numeric'
-        });
-        
-        weekRangeElement.textContent = `${startDate} - ${endDate}`;
-        
-        // Disable previous week button if we're in the current week
-        const prevWeekButton = document.getElementById('prev-week');
-        const today = new Date();
-        const currentWeekStart = window.utils.getWeekRange(today).startDate;
-        
-        prevWeekButton.disabled = 
-            this.currentWeekStart.toDateString() === currentWeekStart.toDateString();
+        try {
+            const weekRange = window.utils.getWeekRange(this.currentWeekStart);
+            
+            const startDate = weekRange.startDate.toLocaleDateString('pt-BR', { 
+                day: 'numeric', 
+                month: 'short' 
+            });
+            
+            const endDate = weekRange.endDate.toLocaleDateString('pt-BR', { 
+                day: 'numeric', 
+                month: 'short',
+                year: 'numeric'
+            });
+            
+            weekRangeElement.textContent = `${startDate} - ${endDate}`;
+            
+            // Disable previous week button if we're in the current week
+            const prevWeekButton = document.getElementById('prev-week');
+            if (prevWeekButton) {
+                const today = new Date();
+                const currentWeekStart = window.utils.getWeekRange(today).startDate;
+                prevWeekButton.disabled = this.currentWeekStart.toDateString() === currentWeekStart.toDateString();
+            }
+        } catch (error) {
+            console.error('Error updating week navigation:', error);
+        }
     }
     
     /**
@@ -326,35 +358,40 @@ class AgendaManager {
      * @param {string} timeSlot - Selected time slot in 'HH:MM' format
      */
     selectTimeSlot(date, timeSlot) {
-        // In a real implementation, this would open a booking modal
-        this.selectedDate = date;
-        this.selectedTime = timeSlot;
-        
-        // Re-render to show the selected state
-        this.renderAgenda();
-        
-        // Format the date in a user-friendly way
-        const dateObj = new Date(date);
-        const dayOfWeek = window.utils.getDayOfWeek(dateObj);
-        const dayNames = {
-            'domingo': 'Domingo',
-            'segunda': 'Segunda-feira',
-            'terca': 'Terça-feira',
-            'quarta': 'Quarta-feira',
-            'quinta': 'Quinta-feira',
-            'sexta': 'Sexta-feira',
-            'sabado': 'Sábado'
-        };
-        
-        const formattedDate = dateObj.toLocaleDateString('pt-BR', { 
-            day: 'numeric', 
-            month: 'long'
-        });
-        
-        window.utils.showNotification(
-            `Você selecionou ${dayNames[dayOfWeek]}, ${formattedDate} às ${timeSlot}.`,
-            'info'
-        );
+        try {
+            // In a real implementation, this would open a booking modal
+            this.selectedDate = date;
+            this.selectedTime = timeSlot;
+            
+            // Re-render to show the selected state
+            this.renderAgenda();
+            
+            // Format the date in a user-friendly way
+            const dateObj = new Date(date);
+            const dayOfWeek = window.utils.getDayOfWeek(dateObj);
+            const dayNames = {
+                'domingo': 'Domingo',
+                'segunda': 'Segunda-feira',
+                'terca': 'Terça-feira',
+                'quarta': 'Quarta-feira',
+                'quinta': 'Quinta-feira',
+                'sexta': 'Sexta-feira',
+                'sabado': 'Sábado'
+            };
+            
+            const formattedDate = dateObj.toLocaleDateString('pt-BR', { 
+                day: 'numeric', 
+                month: 'long'
+            });
+            
+            window.utils.showNotification(
+                `Você selecionou ${dayNames[dayOfWeek]}, ${formattedDate} às ${timeSlot}.`,
+                'info'
+            );
+        } catch (error) {
+            console.error('Error in selectTimeSlot:', error);
+            window.utils.showNotification('Ocorreu um erro ao selecionar o horário. Por favor, tente novamente.', 'error');
+        }
     }
 }
 
