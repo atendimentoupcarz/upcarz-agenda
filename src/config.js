@@ -1,90 +1,112 @@
-/**
- * Configuration for the Upcarz Scheduler
- * This file contains all the static configuration including cities, condominiums, and API settings
- */
-
-const CONFIG = {
-    // Google Sheets API configuration (for future implementation)
-    api: {
-        // This would be replaced with actual Google Sheets API endpoint
-        baseUrl: 'https://sheets.googleapis.com/v4/spreadsheets',
-        // This would be replaced with actual sheet ID
-        sheetId: 'YOUR_GOOGLE_SHEET_ID',
-        // API key would be loaded from environment variables in production
-        apiKey: 'YOUR_GOOGLE_API_KEY',
-    },
-
-    // Time slots configuration with 30-minute increments
+// Application configuration
+window.CONFIG = {
+    // Base API URL (for future use)
+    apiUrl: 'https://api.upcarz.com',
+    
+    // Local data path
+    localDataPath: '/data/',
+    
+    // Time slots configuration
     timeSlots: {
-        morning: { 
-            start: 8, 
-            end: 12, 
+        manha: {
             label: 'Manhã',
             slots: [
-                '08:00', '08:30', '09:00', '09:30', 
-                '10:00', '10:30', '11:00', '11:30'
+                '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+                '11:00', '11:30', '12:00'
             ]
         },
-        afternoon: { 
-            start: 12, 
-            end: 18, 
+        tarde: {
             label: 'Tarde',
             slots: [
-                '12:00', '12:30', '13:00', '13:30',
-                '14:00', '14:30', '15:00', '15:30',
+                '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
                 '16:00', '16:30', '17:00', '17:30'
             ]
         }
-        // Evening period removed as requested
     },
-
-    // City configuration
+    
+    // City and condominiums data
     city: {
         name: 'Jundiaí',
         condominiums: [
-            { name: 'Brisas da Mata', slug: 'BrisasdaMata', microRegion: 2 },
-            { name: 'Brisas Jundiaí', slug: 'BrisasJundiai', microRegion: 1 },
-            { name: 'Canto da Natureza', slug: 'CantodaNatureza', microRegion: 5 },
-            { name: 'Garden Resort', slug: 'GardenResort', microRegion: 4 },
-            { name: 'Jardim Atenas', slug: 'JardimAtenas', microRegion: 2 },
-            { name: 'Reserva da Mata', slug: 'ReservadaMata', microRegion: 3 },
-            { name: 'Reserva Marajoara', slug: 'ReservaMarajoara', microRegion: 2 },
-            { name: 'Village das Flores', slug: 'VillagedasFlores', microRegion: 2 },
-            { name: 'Villaggio da Serra', slug: 'VillaggiodaSerra', microRegion: 2 },
-            { name: 'Jardim Santa Teresa', slug: 'JardimSantaTeresa', microRegion: 2 }
+            { id: 'cantodanatureza', name: 'Canto da Natureza' },
+            { id: 'villadaterra', name: 'Vila da Terra' },
+            { id: 'villabosque', name: 'Vila do Bosque' },
+            { id: 'villadoslagos', name: 'Vila dos Lagos' },
+            { id: 'villamontesiena', name: 'Vila Monte Siena' },
+            { id: 'villanatureza', name: 'Vila Natureza' },
+            { id: 'villapark', name: 'Vila Park' },
+            { id: 'villareal', name: 'Vila Real' },
+            { id: 'villareale', name: 'Villa Reale' },
+            { id: 'villaregina', name: 'Vila Régia' },
+            { id: 'villaregina2', name: 'Vila Regina II' },
+            { id: 'villaregina3', name: 'Vila Regina III' },
+            { id: 'villaregina4', name: 'Vila Regina IV' },
+            { id: 'villaregina5', name: 'Vila Regina V' },
+            { id: 'villareginanovo', name: 'Vila Regina Novo' },
+            { id: 'villareginav', name: 'Vila Regina V' },
+            { id: 'villareginavi', name: 'Vila Regina VI' },
+            { id: 'villareginavii', name: 'Vila Regina VII' },
+            { id: 'villareginaviii', name: 'Vila Regina VIII' },
+            { id: 'villareginaix', name: 'Vila Regina IX' },
+            { id: 'villareginax', name: 'Vila Regina X' },
+            { id: 'villareginaxi', name: 'Vila Regina XI' },
+            { id: 'villareginaxii', name: 'Vila Regina XII' },
+            { id: 'villareginaxiii', name: 'Vila Regina XIII' },
+            { id: 'villareginaxiv', name: 'Vila Regina XIV' },
+            { id: 'villareginaxv', name: 'Vila Regina XV' },
+            { id: 'villareginaxvi', name: 'Vila Regina XVI' },
+            { id: 'villareginaxvii', name: 'Vila Regina XVII' },
+            { id: 'villareginaxviii', name: 'Vila Regina XVIII' },
+            { id: 'villareginaxix', name: 'Vila Regina XIX' },
+            { id: 'villareginaxx', name: 'Vila Regina XX' },
+            { id: 'villareginaxxi', name: 'Vila Regina XXI' },
+            { id: 'villareginaxxii', name: 'Vila Regina XXII' },
+            { id: 'villareginaxxiii', name: 'Vila Regina XXIII' },
+            { id: 'villareginaxxiv', name: 'Vila Regina XXIV' },
+            { id: 'villareginaxxv', name: 'Vila Regina XXV' },
+            { id: 'villareginaxxvi', name: 'Vila Regina XXVI' },
+            { id: 'villareginaxxvii', name: 'Vila Regina XXVII' },
+            { id: 'villareginaxxviii', name: 'Vila Regina XXVIII' },
+            { id: 'villareginaxxix', name: 'Vila Regina XXIX' },
+            { id: 'villareginaxxx', name: 'Vila Regina XXX' },
+            { id: 'villareginaxxxi', name: 'Vila Regina XXXI' },
+            { id: 'villareginaxxxii', name: 'Vila Regina XXXII' },
+            { id: 'villareginaxxxiii', name: 'Vila Regina XXXIII' },
+            { id: 'villareginaxxxiv', name: 'Vila Regina XXXIV' },
+            { id: 'villareginaxxxv', name: 'Vila Regina XXXV' },
+            { id: 'villareginaxxxvi', name: 'Vila Regina XXXVI' },
+            { id: 'villareginaxxxvii', name: 'Vila Regina XXXVII' },
+            { id: 'villareginaxxxviii', name: 'Vila Regina XXXVIII' },
+            { id: 'villareginaxxxix', name: 'Vila Regina XXXIX' },
+            { id: 'villareginaxl', name: 'Vila Regina XL' },
+            { id: 'villareginaxli', name: 'Vila Regina XLI' },
+            { id: 'villareginaxlii', name: 'Vila Regina XLII' },
+            { id: 'villareginaxliii', name: 'Vila Regina XLIII' },
+            { id: 'villareginaxliv', name: 'Vila Regina XLIV' },
+            { id: 'villareginaxlv', name: 'Vila Regina XLV' },
+            { id: 'villareginaxlvi', name: 'Vila Regina XLVI' },
+            { id: 'villareginaxlvii', name: 'Vila Regina XLVII' },
+            { id: 'villareginaxlviii', name: 'Vila Regina XLVIII' },
+            { id: 'villareginaxlix', name: 'Vila Regina XLIX' },
+            { id: 'villareginal', name: 'Vila Regina L' }
         ]
-    },
-
-    // For demo purposes, we'll use local JSON files
-    // In production, this would be replaced with actual API calls
-    dataSource: 'local', // 'local' or 'google-sheets'
-    
-    // Local JSON file paths (for demo)
-    localDataPath: 'data/'
+    }
 };
 
-// Helper function to get the sheet name for a city-condominium combination
-function getSheetName(city, condominium) {
-    return `${city}_${condominium.replace(/\s+/g, '')}`;
-}
-
-// For local development, we'll use this to map sheet names to JSON files
-// In a real implementation, this would be replaced with actual API calls
-const LOCAL_DATA_MAPPING = {
-    // Jundiaí
-    'Jundiai_BrisasdaMata': 'Jundiai_BrisasdaMata.json',
-    'Jundiai_BrisasJundiai': 'Jundiai_BrisasJundiai.json',
+// Local data mapping for development
+window.LOCAL_DATA_MAPPING = {
     'Jundiai_CantodaNatureza': 'Jundiai_CantodaNatureza.json',
-    'Jundiai_GardenResort': 'Jundiai_GardenResort.json',
-    'Jundiai_JardimAtenas': 'Jundiai_JardimAtenas.json',
-    'Jundiai_ReservadaMata': 'Jundiai_ReservadaMata.json',
-    'Jundiai_ReservaMarajoara': 'Jundiai_ReservaMarajoara.json',
-    'Jundiai_VillagedasFlores': 'Jundiai_VillagedasFlores.json',
-    'Jundiai_VillaggiodaSerra': 'Jundiai_VillaggiodaSerra.json',
-    'Jundiai_JardimSantaTeresa': 'Jundiai_JardimSantaTeresa.json'
+    'Jundiai_ViladaTerra': 'Jundiai_ViladaTerra.json',
+    'Jundiai_ViladoBosque': 'Jundiai_ViladoBosque.json',
+    'Jundiai_ViladosLagos': 'Jundiai_ViladosLagos.json',
+    'Jundiai_VilaMonteSiena': 'Jundiai_VilaMonteSiena.json',
+    'Jundiai_VilaNatureza': 'Jundiai_VilaNatureza.json',
+    'Jundiai_VilaPark': 'Jundiai_VilaPark.json',
+    'Jundiai_VilaReal': 'Jundiai_VilaReal.json',
+    'Jundiai_VillaReale': 'Jundiai_VillaReale.json'
 };
 
-// Export the configuration
-window.CONFIG = CONFIG;
-window.getSheetName = getSheetName;
-window.LOCAL_DATA_MAPPING = LOCAL_DATA_MAPPING;
+// Helper function to get sheet name for API calls
+window.getSheetName = (city, condominium) => {
+    return `${city.replace(/\s+/g, '')}_${condominium}`;
+};

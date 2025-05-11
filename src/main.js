@@ -1,73 +1,195 @@
-/**
- * Main application entry point
- * Handles DOM initialization and event listeners
- */
+import './config.js';
+import './utils.js';
+import './agenda.js';
 
-// Expose the init function to the global scope
-window.main = {
-    init: function() {
-        try {
-            console.log('Initializing Upcarz Scheduler...');
-            // Initialize the agenda manager
-            window.agendaManager = new AgendaManager();
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Load the initial data
-            loadInitialData();
-            
-            console.log('Upcarz Scheduler initialized successfully');
-        } catch (error) {
-            console.error('Error initializing application:', error);
-            // Show error message to the user
-            if (window.utils && window.utils.showNotification) {
-                window.utils.showNotification(
-                    'Ocorreu um erro ao carregar o aplicativo. Por favor, recarregue a página.',
-                    'error'
-                );
-            } else {
-                alert('Erro ao carregar o aplicativo. Por favor, recarregue a página.');
-            }
-        }
-    }
-};
+// Main application initialization
+console.log('Initializing Upcarz Scheduler...');
 
-// Initialize when the DOM is fully loaded
+// Initialize the app when the DOM is fully loaded
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.main.init);
+    document.addEventListener('DOMContentLoaded', initApp);
 } else {
-    // DOM is already ready
-    window.main.init();
+    initApp();
 }
 
-/**
- * Set up event listeners
- */
-function setupEventListeners() {
-    // City selection change (disabled since we only have Jundiaí)
-    const citySelect = document.getElementById('city');
-    if (citySelect) {
-        citySelect.disabled = true; // Disable city selection
-        citySelect.addEventListener('change', updateCondominiums);
+function initApp() {
+    try {
+        // Initialize the agenda manager
+        window.agendaManager = new AgendaManager();
+        window.agendaManager.init();
+        
+        // Initial render
+        renderHomeView();
+        
+        console.log('Upcarz Scheduler initialized successfully');
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        showError('Ocorreu um erro ao inicializar o aplicativo. Por favor, recarregue a página.');
     }
+}
+
+// Export functions to global scope
+window.showError = (message) => {
+    alert(`Erro: ${message}`);
+};
+
+window.renderHomeView = () => {
+    const app = document.getElementById('app');
+    if (!app) return;
     
+    app.innerHTML = `
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Header -->
+            <div class="bg-blue-600 p-6 text-white">
+                <h1 class="text-2xl md:text-3xl font-bold">Agendamento Upcarz</h1>
+                <p class="mt-2">Agende sua lavagem de carro em Jundiaí</p>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="p-6">
+                <!-- Selection Form -->
+                <div id="form-section">
+                    <form id="schedule-form" class="space-y-6">
+                        <div class="grid grid-cols-1 gap-6">
+                            <!-- City Selection (Disabled, only Jundiaí) -->
+                            <div>
+                                <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                                <select id="city" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 cursor-not-allowed" disabled>
+                                    <option value="Jundiaí" selected>Jundiaí</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Condominium Selection -->
+                            <div>
+                                <label for="condominium" class="block text-sm font-medium text-gray-700 mb-1">Condomínio</label>
+                                <select id="condominium" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                                    <option value="">Selecione um condomínio</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>Horários disponíveis em intervalos de 30 minutos, das 08:00 às 17:30.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button type="submit" class="btn btn-primary flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                Verificar Disponibilidade
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Agenda Container -->
+                <div id="agenda-section" class="hidden mt-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">Horários Disponíveis</h2>
+                        <button id="back-button" class="text-blue-600 hover:text-blue-800 flex items-center transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Voltar
+                        </button>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div id="loading-state" class="hidden flex justify-center items-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                    
+                    <!-- Agenda Content -->
+                    <div id="agenda-container" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <div id="agenda">
+                            <p class="text-center text-gray-500 py-8">Selecione um condomínio para ver os horários disponíveis.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Legend -->
+                    <div class="mt-6 flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <span class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></span>
+                            Disponível
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-4 h-4 bg-red-50 border border-red-200 rounded mr-2"></span>
+                            Indisponível
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-4 h-4 bg-gray-100 border border-gray-300 rounded mr-2"></span>
+                            Fora do horário
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <p class="text-center text-sm text-gray-500">
+                    © ${new Date().getFullYear()} Upcarz - Todos os direitos reservados
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Set up event listeners
+    setupEventListeners();
+};
+
+function setupEventListeners() {
     // Form submission
     const form = document.getElementById('schedule-form');
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
     
-    // Back button in agenda view
+    // Back button
     const backButton = document.getElementById('back-button');
     if (backButton) {
         backButton.addEventListener('click', showFormView);
     }
 }
 
-/**
- * Show the form view and hide the agenda view
- */
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const condominiumSelect = document.getElementById('condominium');
+    if (!condominiumSelect) return;
+    
+    const city = 'Jundiaí';
+    const condominium = condominiumSelect.value;
+    
+    if (!condominium) {
+        showError('Por favor, selecione um condomínio.');
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const loadingState = document.getElementById('loading-state');
+        const formSection = document.getElementById('form-section');
+        const agendaSection = document.getElementById('agenda-section');
+        
+        if (loadingState && formSection && agendaSection) {
+            formSection.classList.add('hidden');
+            agendaSection.classList.remove('hidden');
+            loadingState.classList.remove('hidden');
+            
+            // Load agenda data
+            await window.agendaManager.loadAgenda(city, condominium);
+            
+            // Hide loading state
+            loadingState.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error handling form submission:', error);
+        showError('Não foi possível carregar os horários disponíveis. Por favor, tente novamente.');
+        showFormView();
+    }
+}
+
 function showFormView() {
     const formSection = document.getElementById('form-section');
     const agendaSection = document.getElementById('agenda-section');
@@ -75,183 +197,5 @@ function showFormView() {
     if (formSection && agendaSection) {
         formSection.classList.remove('hidden');
         agendaSection.classList.add('hidden');
-        
-        // Reset form
-        const form = document.getElementById('schedule-form');
-        if (form) form.reset();
-        
-        // Clear any selected time slot
-        if (window.agendaManager) {
-            window.agendaManager.clearSelection();
-        }
-    }
-}
-
-/**
- * Update condominiums dropdown based on selected city
- */
-function updateCondominiums() {
-    const citySelect = document.getElementById('city');
-    const condominiumSelect = document.getElementById('condominium');
-    
-    if (!citySelect || !condominiumSelect) return;
-    
-    const selectedCity = citySelect.value;
-    const condominiums = window.CONFIG.city.condominiums || [];
-    
-    // Clear existing options
-    condominiumSelect.innerHTML = '<option value="">Selecione um condomínio</option>';
-    
-    // Add new options
-    condominiums.forEach(condo => {
-        const option = document.createElement('option');
-        option.value = condo.slug;
-        option.textContent = condo.name;
-        condominiumSelect.appendChild(option);
-    });
-}
-
-/**
- * Handle form submission
- * @param {Event} event - Form submit event
- */
-function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    const citySelect = document.getElementById('city');
-    const condominiumSelect = document.getElementById('condominium');
-    
-    if (!citySelect || !condominiumSelect) return;
-    
-    const city = citySelect.value;
-    const condominiumSlug = condominiumSelect.value;
-    
-    if (!city || !condominiumSlug) {
-        window.utils.showNotification('Por favor, selecione um condomínio.', 'warning');
-        return;
-    }
-    
-    // Load agenda data for the selected condominium
-    loadAgendaData(city, condominiumSlug);
-}
-
-/**
- * Load initial data
- */
-function loadInitialData() {
-    try {
-        // Set the city to Jundiaí
-        const citySelect = document.getElementById('city');
-        if (citySelect) {
-            citySelect.innerHTML = `
-                <option value="Jundiaí" selected>Jundiaí</option>
-            `;
-        }
-        
-        // Update condominiums for the selected city
-        updateCondominiums();
-        
-        // Enable the condominium select
-        const condominiumSelect = document.getElementById('condominium');
-        if (condominiumSelect) {
-            condominiumSelect.disabled = false;
-        }
-    } catch (error) {
-        console.error('Error loading initial data:', error);
-        window.utils.showNotification(
-            'Ocorreu um erro ao carregar a lista de condomínios. Por favor, recarregue a página.',
-            'error'
-        );
-    }
-}
-
-/**
- * Load agenda data for a specific city and condominium
- * @param {string} city - City name
- * @param {string} condominiumSlug - Condominium slug
- */
-async function loadAgendaData(city, condominiumSlug) {
-    // Show loading state
-    const submitButton = document.querySelector('#schedule-form button[type="submit"]');
-    if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.innerHTML = `
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Carregando...
-        `;
-    }
-    
-    try {
-        // Normalize city name by removing accents and spaces
-        const normalizeString = (str) => {
-            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
-        };
-        
-        const normalizedCity = normalizeString(city);
-        const normalizedSlug = normalizeString(condominiumSlug);
-        const sheetName = `${normalizedCity}_${normalizedSlug}`;
-        
-        console.log(`Attempting to load data for: ${sheetName}`);
-        
-        // Try to find the data file in LOCAL_DATA_MAPPING
-        const mappedFileName = window.LOCAL_DATA_MAPPING && window.LOCAL_DATA_MAPPING[sheetName];
-        
-        if (!mappedFileName) {
-            throw new Error(`Condomínio não encontrado: ${condominiumSlug}`);
-        }
-        
-        console.log(`Loading data from: data/${mappedFileName}`);
-        
-        // Try to load the data file
-        const response = await fetch(`data/${mappedFileName}`);
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load data file: ${mappedFileName} (${response.status} ${response.statusText})`);
-        }
-        
-        const data = await response.json();
-        console.log('Successfully loaded data:', data);
-        
-        // Update the UI with the loaded data
-        if (!window.agendaManager) {
-            console.error('AgendaManager not initialized');
-            throw new Error('Erro ao carregar o gerenciador de agenda');
-        }
-        
-        window.agendaManager.setAgendaData(data);
-        window.agendaManager.init();
-        
-        // Show the agenda section
-        const formSection = document.getElementById('form-section');
-        const agendaSection = document.getElementById('agenda-section');
-        const loadingState = document.getElementById('loading-state');
-        
-        if (formSection && agendaSection && loadingState) {
-            formSection.classList.add('hidden');
-            loadingState.classList.add('hidden');
-            agendaSection.classList.remove('hidden');
-            
-            // Scroll to the agenda section for better UX
-            agendaSection.scrollIntoView({ behavior: 'smooth' });
-        }
-    } catch (error) {
-        console.error('Error loading agenda data:', error);
-        if (window.utils && window.utils.showNotification) {
-            window.utils.showNotification(
-                'Não foi possível carregar os horários disponíveis. Por favor, tente novamente.',
-                'error'
-            );
-        } else {
-            alert('Erro ao carregar os horários. Por favor, tente novamente.');
-        }
-    } finally {
-        // Reset loading state
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Verificar Disponibilidade';
-        }
     }
 }

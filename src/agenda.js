@@ -1,402 +1,462 @@
 /**
- * Agenda Management Module
- * Handles the rendering and interaction with the weekly agenda
+ * Agenda Manager - Handles all agenda-related functionality
  */
-
 class AgendaManager {
     constructor() {
-        this.currentWeekStart = null;
+        this.currentDate = new Date();
+        this.currentCity = null;
+        this.currentCondominium = null;
         this.agendaData = null;
+        this.bookedSlots = new Set();
         this.selectedDate = null;
         this.selectedTime = null;
-        
-        // Bind methods
-        this.init = this.init.bind(this);
-        this.loadAgenda = this.loadAgenda.bind(this);
-        this.renderAgenda = this.renderAgenda.bind(this);
-        this.changeWeek = this.changeWeek.bind(this);
-        this.selectTimeSlot = this.selectTimeSlot.bind(this);
-        this.updateWeekNavigation = this.updateWeekNavigation.bind(this);
     }
-    
+
     /**
-     * Initialize the agenda with the current week
+     * Initialize the agenda manager
      */
-    /**
-     * Set the agenda data and re-render the agenda
-     * @param {Object} data - The agenda data to display
-     */
-    setAgendaData(data) {
-        console.log('Setting agenda data:', data);
-        this.agendaData = data;
-        // If we already have a week start, re-render with the new data
-        if (this.currentWeekStart) {
-            this.renderAgenda();
-        }
-    }
-    
     init() {
-        this.currentWeekStart = new Date();
-        // Reset to the start of the current week
-        const weekRange = window.utils.getWeekRange(this.currentWeekStart);
-        this.currentWeekStart = weekRange.startDate;
-        
-        // Set up event listeners
-        const prevWeekBtn = document.getElementById('prev-week');
-        const nextWeekBtn = document.getElementById('next-week');
-        
-        if (prevWeekBtn) {
-            prevWeekBtn.addEventListener('click', () => this.changeWeek(-1));
+        try {
+            console.log('Initializing AgendaManager...');
+            this.setupEventListeners();
+            this.populateCondominiumSelect();
+            console.log('AgendaManager initialized');
+        } catch (error) {
+            console.error('Error initializing AgendaManager:', error);
+            throw error;
         }
-        
-        if (nextWeekBtn) {
-            nextWeekBtn.addEventListener('click', () => this.changeWeek(1));
-        }
-        
-        // Initial render
-        this.updateWeekNavigation();
     }
-    
+
     /**
-     * Load agenda data for the selected city and condominium
-     * @param {string} city - The selected city
-     * @param {string} condominium - The selected condominium
+     * Set up event listeners
+     */
+    setupEventListeners() {
+        // Previous week button
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.closest('#prev-week')) {
+                this.navigateWeek(-1);
+            }
+        });
+
+        // Next week button
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.closest('#next-week')) {
+                this.navigateWeek(1);
+            }
+        });
+
+        // Time slot selection
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.closest('.time-slot')) {
+                this.handleTimeSlotClick(e);
+            }
+        });
+    }
+
+    /**
+     * Populate the condominium select dropdown
+     */
+    populateCondominiumSelect() {
+        const select = document.getElementById('condominium');
+        if (!select) return;
+
+        // Clear existing options except the first one
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Add condominiums from config
+        CONFIG.city.condominiums.forEach(condo => {
+            const option = document.createElement('option');
+            option.value = condo.id;
+            option.textContent = condo.name;
+            select.appendChild(option);
+        });
+    }
+
+    /**
+     * Load agenda data for a specific city and condominium
+     * @param {string} city - The city name
+     * @param {string} condominium - The condominium ID
      */
     async loadAgenda(city, condominium) {
-        const loadingElement = document.getElementById('loading');
-        const agendaContainer = document.getElementById('agenda-container');
-        
         try {
-            // Show loading state
-            loadingElement.classList.remove('hidden');
-            agendaContainer.classList.add('hidden');
+            console.log(`Loading agenda for ${city} - ${condominium}`);
             
-            // In a real implementation, this would be an API call to Google Sheets
-            const sheetName = window.getSheetName(city, condominium);
-            const fileName = window.LOCAL_DATA_MAPPING[sheetName];
+            this.currentCity = city;
+            this.currentCondominium = condominium;
             
-            if (!fileName) {
-                throw new Error('Dados não encontrados para o condomínio selecionado');
+            // In a real app, this would be an API call
+            // For now, we'll use local data
+            const data = await this.fetchAgendaData(city, condominium);
+            
+            if (data) {
+                this.agendaData = data;
+                this.renderAgenda();
+            } else {
+                throw new Error('No data received');
             }
-            
-            // For demo purposes, we're loading from local JSON files
-            const response = await fetch(`${window.CONFIG.localDataPath}${fileName}`);
-            
-            if (!response.ok) {
-                throw new Error('Falha ao carregar a agenda');
-            }
-            
-            this.agendaData = await response.json();
-            
-            // Render the agenda with the loaded data
-            this.renderAgenda();
-            
-            // Show the agenda container
-            agendaContainer.classList.remove('hidden');
         } catch (error) {
             console.error('Error loading agenda:', error);
-            window.utils.showNotification(error.message, 'error');
-        } finally {
-            loadingElement.classList.add('hidden');
+            window.showError('Não foi possível carregar a agenda. Por favor, tente novamente.');
+            throw error;
         }
     }
-    
+
     /**
-     * Render the agenda with the current week's data
+     * Fetch agenda data (mocked for now)
+     */
+    async fetchAgendaData(city, condominium) {
+        // In a real app, this would be an API call
+        // For now, we'll simulate a delay and return mock data
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Generate mock data for the next 7 days
+                const weekData = [];
+                const today = new Date();
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    
+                    const dayData = {
+                        date: date.toISOString().split('T')[0],
+                        day: window.utils.getDayOfWeek(date),
+                        slots: {}
+                    };
+                    
+                    // Add some random availability
+                    const periods = ['manha', 'tarde'];
+                    periods.forEach(period => {
+                        dayData.slots[period] = CONFIG.timeSlots[period].slots.map(slot => {
+                            // Make some slots unavailable (for demo purposes)
+                            const isAvailable = Math.random() > 0.3;
+                            return {
+                                time: slot,
+                                available: isAvailable,
+                                booked: false
+                            };
+                        });
+                    });
+                    
+                    weekData.push(dayData);
+                }
+                
+                resolve(weekData);
+            }, 500);
+        });
+    }
+
+    /**
+     * Render the agenda view
      */
     renderAgenda() {
-        if (!this.agendaData) return;
+        const agendaContainer = document.getElementById('agenda');
+        if (!agendaContainer) return;
         
-        const agendaElement = document.getElementById('agenda');
-        if (!agendaElement) {
-            console.error('Agenda element not found in the DOM');
+        if (!this.agendaData || this.agendaData.length === 0) {
+            agendaContainer.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhum horário disponível para o período selecionado.</p>';
             return;
         }
         
-        const weekDates = window.utils.getWeekDates(this.currentWeekStart);
+        // Get the current week range
+        const weekRange = window.utils.getWeekRange();
         
-        try {
-            // Create the header with micro region info
-            let agendaHTML = `
-                <div class="bg-blue-50 p-4 mb-4 rounded-lg">
-                    <h3 class="text-lg font-semibold">${this.agendaData.condominio || 'Condomínio não especificado'}</h3>
-                    <p class="text-sm text-gray-600">
-                        Cidade: ${this.agendaData.cidade || 'Não especificada'}
-                    </p>`;
+        // Generate the agenda HTML
+        let html = `
+            <div class="bg-white rounded-lg overflow-hidden">
+                <!-- Week Navigation -->
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <button id="prev-week" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                     
-            // Add micro region if available
-            if (window.CONFIG?.microRegions && this.agendaData.microRegiao !== undefined) {
-                const microRegionName = window.CONFIG.microRegions[this.agendaData.microRegiao] || 'Não especificada';
-                agendaHTML += `
-                    <p class="text-sm text-gray-600">
-                        Micro Região: ${microRegionName}
-                    </p>`;
-            }
-            
-            // Start the table
-            agendaHTML += `
+                    <div id="week-range" class="text-sm font-medium text-gray-700">
+                        ${this.formatWeekRange(weekRange.startDate, weekRange.endDate)}
+                    </div>
+                    
+                    <button id="next-week" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>`;
-            
-            // Add day headers
-            weekDates.forEach(date => {
-                const isToday = date.toDateString() === new Date().toDateString();
-                const dayClass = isToday ? 'bg-blue-50 text-blue-700' : 'text-gray-700';
-                agendaHTML += `
-                                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${dayClass}">
-                                    <div class="font-medium">${date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
-                                    <div class="text-lg font-semibold">${date.getDate()}</div>
-                                </th>`;
-            });
-            
-            // Close the header and start the table body
-            agendaHTML += `
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">`;
-        
-        // Add time slots for each period
-        Object.entries(window.CONFIG.timeSlots).forEach(([period, { label, slots }]) => {
-            // Add period label row
-            agendaHTML += `
-                <tr class="bg-gray-50">
-                    <td colspan="${weekDates.length + 1}" class="px-4 py-2 text-sm font-medium text-gray-700">
-                        ${label}
-                    </td>
-                </tr>
-            `;
-
-            // Add 30-minute slots
-            slots.forEach(timeSlot => {
-                const [hour, minute] = timeSlot.split(':').map(Number);
-                const timeSlotStr = `${hour.toString().padStart(2, '0')}:${minute === 0 ? '00' : '30'}`;
                 
-                agendaHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 border-r">
-                            ${timeSlotStr}
-                        </td>
-                `;
-
-                // Add cells for each day of the week
-                weekDates.forEach(date => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    const slotKey = timeSlotStr;
-                    const isAvailable = this.isTimeSlotAvailable(dateStr, slotKey);
-                    const isPast = this.isPastTimeSlot(date, hour, minute);
-                    const isSelected = this.selectedDate === dateStr && this.selectedTime === slotKey;
-                    const slotExists = this.doesTimeSlotExist(dateStr, slotKey);
-                    
-                    let cellClass = 'px-1 py-2 text-center text-sm border-r border-gray-200 ';
-                    let buttonClass = 'w-full py-1 px-1 rounded transition-colors text-xs ';
-                    
-                    if (isSelected) {
-                        buttonClass += 'bg-blue-600 text-white';
-                    } else if (isPast || !slotExists) {
-                        buttonClass += 'bg-gray-100 text-gray-400 cursor-not-allowed';
-                        if (!slotExists) {
-                            buttonClass += ' opacity-50';
-                        }
-                    } else if (isAvailable) {
-                        buttonClass += ' bg-green-100 text-green-800 hover:bg-green-200';
-                    } else {
-                        buttonClass += ' bg-red-50 text-red-600 line-through cursor-not-allowed';
-                    }
-                    
-                    agendaHTML += `
-                        <td class="${cellClass}">
-                            <button 
-                                class="${buttonClass} time-slot"
-                                data-date="${dateStr}"
-                                data-time="${slotKey}"
-                                ${!isAvailable || isPast || !slotExists ? 'disabled' : ''}
-                                onclick="window.agendaManager.selectTimeSlot('${dateStr}', '${slotKey}')"
-                            >
-                                ${slotExists ? (isAvailable ? '✓' : '✕') : '—'}
-                            </button>
-                        </td>
-                    `;
-                });
-
-                agendaHTML += '</tr>';
-            });
-        });
-
-        agendaHTML += `
-                    </tbody>
-                </table>
+                <!-- Days Grid -->
+                <div class="overflow-x-auto">
+                    <div class="min-w-max">
+                        <div class="grid grid-cols-7 divide-x divide-gray-200">
+                            ${this.agendaData.map(day => this.renderDayColumn(day)).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Booking Form (Hidden by default) -->
+            <div id="booking-form" class="hidden mt-6 bg-white p-6 rounded-lg border border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Confirmar Agendamento</h3>
+                <p id="selected-time" class="text-gray-600 mb-4"></p>
+                <form id="confirm-booking" class="space-y-4">
+                    <div>
+                        <label for="client-name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <input type="text" id="client-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="client-phone" class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                        <input type="tel" id="client-phone" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="client-email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                        <input type="email" id="client-email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" id="cancel-booking" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
+                    </div>
+                </form>
             </div>
         `;
         
-            agendaElement.innerHTML = agendaHTML;
-        } catch (error) {
-            console.error('Error rendering agenda:', error);
-            window.utils.showNotification('Ocorreu um erro ao carregar a agenda. Por favor, tente novamente.', 'error');
+        agendaContainer.innerHTML = html;
+        
+        // Add event listeners for the booking form
+        this.setupBookingForm();
+    }
+    
+    /**
+     * Render a day column in the agenda
+     */
+    renderDayColumn(dayData) {
+        const date = new Date(dayData.date);
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+        const isPast = date < today && !isToday;
+        
+        // Format date for display
+        const dayNumber = date.getDate();
+        const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const monthName = monthNames[date.getMonth()];
+        const dayName = dayData.day.charAt(0).toUpperCase() + dayData.day.slice(1);
+        
+        // Generate time slots HTML
+        let timeSlotsHtml = '';
+        
+        // Morning slots
+        if (dayData.slots.manha && dayData.slots.manha.length > 0) {
+            timeSlotsHtml += `
+                <div class="mb-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Manhã</h4>
+                    <div class="space-y-1">
+                        ${dayData.slots.manha.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Afternoon slots
+        if (dayData.slots.tarde && dayData.slots.tarde.length > 0) {
+            timeSlotsHtml += `
+                <div class="mb-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tarde</h4>
+                    <div class="space-y-1">
+                        ${dayData.slots.tarde.map(slot => this.renderTimeSlot(slot, isPast)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="p-2 ${isPast ? 'opacity-50' : ''}">
+                <div class="text-center mb-3">
+                    <div class="text-sm font-medium text-gray-900">${dayName}</div>
+                    <div class="text-xs text-gray-500">${dayNumber} ${monthName}</div>
+                    ${isToday ? '<div class="mt-1 h-1 w-1/2 mx-auto bg-blue-500 rounded-full"></div>' : ''}
+                </div>
+                <div class="h-64 overflow-y-auto">
+                    ${timeSlotsHtml || '<p class="text-xs text-gray-500 text-center py-4">Nenhum horário disponível</p>'}
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * Render a time slot button
+     */
+    renderTimeSlot(slot, isPast) {
+        const isAvailable = slot.available && !isPast && !slot.booked;
+        const isBooked = slot.booked;
+        const isUnavailable = !slot.available || isPast;
+        
+        let buttonClass = 'time-slot w-full text-left';
+        let buttonContent = slot.time;
+        
+        if (isBooked) {
+            buttonClass += ' bg-red-50 text-red-400 cursor-not-allowed';
+            buttonContent += ' (Indisponível)';
+        } else if (isUnavailable) {
+            buttonClass += ' bg-gray-100 text-gray-400 cursor-not-allowed';
+            buttonContent += ' (Indisponível)';
+        } else {
+            buttonClass += ' bg-green-100 text-green-800 hover:bg-green-200';
+            buttonContent += ' (Disponível)';
+        }
+        
+        return `
+            <button 
+                class="${buttonClass}"
+                ${!isAvailable ? 'disabled' : ''}
+                data-time="${slot.time}"
+                data-available="${isAvailable}"
+            >
+                ${buttonContent}
+            </button>
+        `;
+    }
+    
+    /**
+     * Format a date range for display
+     */
+    formatWeekRange(startDate, endDate) {
+        const startDay = startDate.getDate();
+        const startMonth = startDate.toLocaleString('pt-BR', { month: 'short' });
+        const endDay = endDate.getDate();
+        const endMonth = endDate.toLocaleString('pt-BR', { month: 'short' });
+        const year = endDate.getFullYear();
+        
+        if (startMonth === endMonth) {
+            return `${startDay} - ${endDay} ${startMonth} ${year}`;
+        } else {
+            return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
         }
     }
     
     /**
-     * Check if a time slot exists in the data
-     * @param {string} date - Date string in YYYY-MM-DD format
-     * @param {string} timeSlot - Time slot in 'HH:MM' format
-     * @returns {boolean} True if the time slot exists in the data
+     * Navigate to previous or next week
      */
-    doesTimeSlotExist(date, timeSlot) {
-        if (!this.agendaData || !this.agendaData.horariosDisponiveis) return false;
+    navigateWeek(direction) {
+        this.currentDate.setDate(this.currentDate.getDate() + (direction * 7));
         
-        const dayOfWeek = window.utils.getDayOfWeek(new Date(date));
-        const period = parseInt(timeSlot.split(':')[0]) < 12 ? 'manha' : 'tarde';
-        
-        const daySlots = this.agendaData.horariosDisponiveis[dayOfWeek];
-        if (!daySlots) return false;
-        
-        const periodSlots = daySlots[period];
-        if (!periodSlots) return false;
-        
-        return periodSlots.includes(timeSlot);
+        // Reload agenda data for the new week
+        if (this.currentCity && this.currentCondominium) {
+            this.loadAgenda(this.currentCity, this.currentCondominium);
+        }
     }
     
     /**
-     * Check if a time slot is available
-     * @param {string} date - Date string in YYYY-MM-DD format
-     * @param {string} timeSlot - Time slot in 'HH:MM' format
-     * @returns {boolean} True if the time slot is available
+     * Handle time slot click
      */
-    isTimeSlotAvailable(date, timeSlot) {
-        // In our current implementation, if a time slot exists, it's available
-        // This can be enhanced later to handle booked slots
-        return this.doesTimeSlotExist(date, timeSlot);
+    handleTimeSlotClick(event) {
+        const button = event.target.closest('.time-slot');
+        if (!button || button.disabled) return;
+        
+        const time = button.dataset.time;
+        const dateStr = button.closest('[data-date]')?.dataset.date;
+        
+        if (!time || !dateStr) return;
+        
+        this.selectedDate = dateStr;
+        this.selectedTime = time;
+        
+        // Show the booking form
+        const bookingForm = document.getElementById('booking-form');
+        const selectedTimeDisplay = document.getElementById('selected-time');
+        
+        if (bookingForm && selectedTimeDisplay) {
+            const date = new Date(dateStr);
+            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+            const formattedDate = date.toLocaleDateString('pt-BR');
+            
+            selectedTimeDisplay.textContent = `${dayName}, ${formattedDate} às ${time}`;
+            bookingForm.classList.remove('hidden');
+            
+            // Scroll to the form
+            bookingForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
     
     /**
-     * Check if a time slot is in the past
-     * @param {Date} date - Date object
-     * @param {number} hour - Hour in 24h format
-     * @param {number} minute - Minute (0 or 30)
-     * @returns {boolean} True if the time slot is in the past
+     * Set up the booking form
      */
-    isPastTimeSlot(date, hour, minute) {
-        const now = new Date();
-        const slotDate = new Date(date);
+    setupBookingForm() {
+        const bookingForm = document.getElementById('booking-form');
+        const cancelButton = document.getElementById('cancel-booking');
+        const confirmForm = document.getElementById('confirm-booking');
         
-        // Set the time for the slot
-        const [slotHour, slotMinute] = [parseInt(hour), parseInt(minute) || 0];
-        slotDate.setHours(slotHour, slotMinute, 0, 0);
-        
-        // Create a date object for comparison at the start of today
-        const today = new Date(now);
-        today.setHours(0, 0, 0, 0);
-        
-        // If the slot date is before today, it's definitely in the past
-        if (slotDate < today) {
-            return true;
+        if (cancelButton) {
+            cancelButton.addEventListener('click', () => {
+                if (bookingForm) {
+                    bookingForm.classList.add('hidden');
+                }
+            });
         }
         
-        // If it's today, check the time
-        if (slotDate.toDateString() === now.toDateString()) {
-            return slotDate < now;
+        if (confirmForm) {
+            confirmForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitBooking();
+            });
         }
+    }
+    
+    /**
+     * Submit a booking
+     */
+    async submitBooking() {
+        const nameInput = document.getElementById('client-name');
+        const phoneInput = document.getElementById('client-phone');
+        const emailInput = document.getElementById('client-email');
         
-        return false;
-    }
-    
-    /**
-     * Change the current week by the specified number of weeks
-     * @param {number} weeks - Number of weeks to change (can be negative)
-     */
-    changeWeek(weeks) {
-        this.currentWeekStart.setDate(this.currentWeekStart.getDate() + (weeks * 7));
-        this.updateWeekNavigation();
-        this.renderAgenda();
-    }
-    
-    /**
-     * Update the week navigation display
-     */
-    updateWeekNavigation() {
-        const weekRangeElement = document.getElementById('week-range');
-        if (!weekRangeElement) {
-            console.warn('Week range element not found in the DOM');
+        if (!nameInput || !phoneInput || !emailInput || !this.selectedDate || !this.selectedTime) {
+            window.showNotification('Por favor, preencha todos os campos.', 'error');
             return;
         }
         
+        const bookingData = {
+            name: nameInput.value.trim(),
+            phone: phoneInput.value.trim(),
+            email: emailInput.value.trim(),
+            date: this.selectedDate,
+            time: this.selectedTime,
+            city: this.currentCity,
+            condominium: this.currentCondominium,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        
         try {
-            const weekRange = window.utils.getWeekRange(this.currentWeekStart);
+            // In a real app, this would be an API call
+            console.log('Submitting booking:', bookingData);
             
-            const startDate = weekRange.startDate.toLocaleDateString('pt-BR', { 
-                day: 'numeric', 
-                month: 'short' 
-            });
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            const endDate = weekRange.endDate.toLocaleDateString('pt-BR', { 
-                day: 'numeric', 
-                month: 'short',
-                year: 'numeric'
-            });
+            // Show success message
+            window.showNotification('Agendamento realizado com sucesso!', 'success');
             
-            weekRangeElement.textContent = `${startDate} - ${endDate}`;
-            
-            // Disable previous week button if we're in the current week
-            const prevWeekButton = document.getElementById('prev-week');
-            if (prevWeekButton) {
-                const today = new Date();
-                const currentWeekStart = window.utils.getWeekRange(today).startDate;
-                prevWeekButton.disabled = this.currentWeekStart.toDateString() === currentWeekStart.toDateString();
+            // Reset form
+            if (confirmForm) {
+                confirmForm.reset();
             }
+            
+            // Hide booking form
+            const bookingForm = document.getElementById('booking-form');
+            if (bookingForm) {
+                bookingForm.classList.add('hidden');
+            }
+            
+            // Reload agenda to show updated availability
+            if (this.currentCity && this.currentCondominium) {
+                this.loadAgenda(this.currentCity, this.currentCondominium);
+            }
+            
         } catch (error) {
-            console.error('Error updating week navigation:', error);
-        }
-    }
-    
-    /**
-     * Handle time slot selection
-     * @param {string} date - Selected date in YYYY-MM-DD format
-     * @param {string} timeSlot - Selected time slot in 'HH:MM' format
-     */
-    selectTimeSlot(date, timeSlot) {
-        try {
-            // In a real implementation, this would open a booking modal
-            this.selectedDate = date;
-            this.selectedTime = timeSlot;
-            
-            // Re-render to show the selected state
-            this.renderAgenda();
-            
-            // Format the date in a user-friendly way
-            const dateObj = new Date(date);
-            const dayOfWeek = window.utils.getDayOfWeek(dateObj);
-            const dayNames = {
-                'domingo': 'Domingo',
-                'segunda': 'Segunda-feira',
-                'terca': 'Terça-feira',
-                'quarta': 'Quarta-feira',
-                'quinta': 'Quinta-feira',
-                'sexta': 'Sexta-feira',
-                'sabado': 'Sábado'
-            };
-            
-            const formattedDate = dateObj.toLocaleDateString('pt-BR', { 
-                day: 'numeric', 
-                month: 'long'
-            });
-            
-            window.utils.showNotification(
-                `Você selecionou ${dayNames[dayOfWeek]}, ${formattedDate} às ${timeSlot}.`,
-                'info'
-            );
-        } catch (error) {
-            console.error('Error in selectTimeSlot:', error);
-            window.utils.showNotification('Ocorreu um erro ao selecionar o horário. Por favor, tente novamente.', 'error');
+            console.error('Error submitting booking:', error);
+            window.showNotification('Não foi possível realizar o agendamento. Por favor, tente novamente.', 'error');
         }
     }
 }
 
-// Initialize the agenda manager when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.agendaManager = new AgendaManager();
-    window.agendaManager.init();
-});
+// Export to window
+window.AgendaManager = AgendaManager;

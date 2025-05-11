@@ -4,165 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamento Upcarz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .time-slot {
-            transition: all 0.2s ease;
-        }
-        .time-slot:hover {
-            transform: translateY(-2px);
-        }
-        .time-slot:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn {
+                @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+            }
+            .btn-primary {
+                @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+            }
+            .btn-secondary {
+                @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+            }
+            .time-slot {
+                @apply w-full py-1 px-2 rounded transition-colors duration-200 text-sm;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-50">
-    <div class="min-h-screen bg-gray-50 p-4 md:p-8">
-        <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-            <!-- Header -->
-            <div class="bg-blue-600 p-6 text-white">
-                <h1 class="text-2xl md:text-3xl font-bold">Agendamento Upcarz</h1>
-                <p class="mt-2">Agende sua lavagem de carro em Jundiaí</p>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="p-6">
-                <!-- Selection Form -->
-                <div id="form-section">
-                    <form id="schedule-form" class="space-y-6">
-                        <div class="grid grid-cols-1 gap-6">
-                            <!-- City Selection (Disabled, only Jundiaí) -->
-                            <div>
-                                <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                                <select id="city" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 cursor-not-allowed" disabled>
-                                    <option value="Jundiaí" selected>Jundiaí</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Condominium Selection -->
-                            <div>
-                                <label for="condominium" class="block text-sm font-medium text-gray-700 mb-1">Condomínio</label>
-                                <select id="condominium" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                                    <option value="">Selecione um condomínio</option>
-                                </select>
-                            </div>
-                            
-                            <div class="mt-2 text-sm text-gray-500">
-                                <p>Horários disponíveis em intervalos de 30 minutos, das 08:00 às 17:30.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex justify-end">
-                            <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                                </svg>
-                                Verificar Disponibilidade
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Agenda Container -->
-                <div id="agenda-section" class="hidden mt-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-semibold text-gray-800">Horários Disponíveis</h2>
-                        <button id="back-button" class="text-blue-600 hover:text-blue-800 flex items-center transition-colors duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                            </svg>
-                            Voltar
-                        </button>
-                    </div>
-                    
-                    <!-- Loading State -->
-                    <div id="loading-state" class="hidden flex justify-center items-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                    
-                    <!-- Agenda Content -->
-                    <div id="agenda-container" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                        <div id="agenda" class="overflow-x-auto">
-                            <p class="text-center text-gray-500 py-8">Selecione um condomínio para ver os horários disponíveis.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Legend -->
-                    <div class="mt-6 flex flex-wrap gap-4 text-sm text-gray-600">
-                        <div class="flex items-center">
-                            <span class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></span>
-                            Disponível
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-4 h-4 bg-red-50 border border-red-200 rounded mr-2 flex items-center justify-center text-red-500">✕</span>
-                            Indisponível
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-4 h-4 bg-blue-600 rounded mr-2"></span>
-                            Selecionado
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-4 h-4 bg-gray-100 border border-gray-200 rounded mr-2 opacity-50">—</span>
-                            Fora do horário
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                <p class="text-center text-sm text-gray-500">
-                    &copy; 2025 Upcarz. Todos os direitos reservados.
-                </p>
+    <div id="app" class="min-h-screen p-4 md:p-8">
+        <!-- App content will be rendered here by JavaScript -->
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center py-8">
+                <h1 class="text-3xl font-bold text-gray-800">Carregando...</h1>
             </div>
         </div>
     </div>
-
-    <!-- Load scripts with error handling -->
-    <script>
-        function loadScript(src, onload) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = () => {
-                    console.log(`Loaded script: ${src}`);
-                    if (onload) onload();
-                    resolve();
-                };
-                script.onerror = () => {
-                    console.error(`Failed to load script: ${src}`);
-                    reject(new Error(`Failed to load script: ${src}`));
-                };
-                document.body.appendChild(script);
-            });
-        }
-
-        // Load scripts in order
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await loadScript('src/config.js');
-                await loadScript('src/utils.js');
-                await loadScript('src/agenda.js');
-                await loadScript('src/main.js');
-                
-                console.log('All scripts loaded, initializing app...');
-                if (window.main && typeof window.main.init === 'function') {
-                    window.main.init();
-                } else {
-                    console.error('Main script not properly initialized');
-                    alert('Erro ao carregar o aplicativo. Por favor, recarregue a página.');
-                }
-            } catch (error) {
-                console.error('Error loading scripts:', error);
-                alert('Erro ao carregar o aplicativo. Por favor, verifique o console para mais detalhes.');
-            }
-        });
-    </script>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

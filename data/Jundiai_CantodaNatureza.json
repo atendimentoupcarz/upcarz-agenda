@@ -1,35 +1,203 @@
 {
-  "condominio": "Canto da Natureza",
-  "cidade": "Jundiaí",
-  "microRegiao": 5,
-  "horariosDisponiveis": {
-    "segunda": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"]
+  "name": "Canto da Natureza",
+  "city": "Jundiaí",
+  "address": "Rua Exemplo, 123 - Jundiaí/SP",
+  "schedule": [
+    {
+      "date": "2025-05-13",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": true },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": true },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": true },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": true },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": true },
+          { "time": "17:30", "available": true }
+        ]
+      }
     },
-    "terca": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"]
+    {
+      "date": "2025-05-14",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": false },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": false },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": false },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": false },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": false },
+          { "time": "17:30", "available": true }
+        ]
+      }
     },
-    "quarta": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"]
+    {
+      "date": "2025-05-15",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": true },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": true },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": true },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": true },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": true },
+          { "time": "17:30", "available": true }
+        ]
+      }
     },
-    "quinta": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"]
+    {
+      "date": "2025-05-16",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": true },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": true },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": true },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": true },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": true },
+          { "time": "17:30", "available": true }
+        ]
+      }
     },
-    "sexta": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"]
+    {
+      "date": "2025-05-17",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": true },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": true },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": true },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": true },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": true },
+          { "time": "17:30", "available": true }
+        ]
+      }
     },
-    "sabado": {
-      "manha": ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"],
-      "tarde": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30"]
+    {
+      "date": "2025-05-18",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": false },
+          { "time": "08:30", "available": false },
+          { "time": "09:00", "available": false },
+          { "time": "09:30", "available": false },
+          { "time": "10:00", "available": false },
+          { "time": "10:30", "available": false },
+          { "time": "11:00", "available": false },
+          { "time": "11:30", "available": false },
+          { "time": "12:00", "available": false }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": false },
+          { "time": "13:30", "available": false },
+          { "time": "14:00", "available": false },
+          { "time": "14:30", "available": false },
+          { "time": "15:00", "available": false },
+          { "time": "15:30", "available": false },
+          { "time": "16:00", "available": false },
+          { "time": "16:30", "available": false },
+          { "time": "17:00", "available": false },
+          { "time": "17:30", "available": false }
+        ]
+      }
     },
-    "domingo": {
-      "manha": [],
-      "tarde": []
+    {
+      "date": "2025-05-19",
+      "slots": {
+        "manha": [
+          { "time": "08:00", "available": true },
+          { "time": "08:30", "available": true },
+          { "time": "09:00", "available": true },
+          { "time": "09:30", "available": true },
+          { "time": "10:00", "available": true },
+          { "time": "10:30", "available": true },
+          { "time": "11:00", "available": true },
+          { "time": "11:30", "available": true },
+          { "time": "12:00", "available": true }
+        ],
+        "tarde": [
+          { "time": "13:00", "available": true },
+          { "time": "13:30", "available": true },
+          { "time": "14:00", "available": true },
+          { "time": "14:30", "available": true },
+          { "time": "15:00", "available": true },
+          { "time": "15:30", "available": true },
+          { "time": "16:00", "available": true },
+          { "time": "16:30", "available": true },
+          { "time": "17:00", "available": true },
+          { "time": "17:30", "available": true }
+        ]
+      }
     }
-  }
+  ]
 }

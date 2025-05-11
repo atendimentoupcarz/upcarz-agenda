@@ -1,96 +1,84 @@
 # Upcarz Scheduler
 
-A responsive and modern scheduling interface for Upcarz, allowing users to check available time slots for car washing services in Jundiaí condominiums.
+Sistema de agendamento de lavagem de carros para condomínios em Jundiaí.
 
-## Features
+## Funcionalidades
 
-- Condominium selection with dynamic dropdown
-- Weekly calendar view with available time slots
-- Responsive design that works on mobile and desktop
-- Visual indicators for available and unavailable time slots
-- Local JSON data storage (can be replaced with API calls)
+- Visualização de horários disponíveis por condomínio
+- Navegação por semanas
+- Seleção de horários
+- Confirmação de agendamento
+- Interface responsiva
 
-## Project Structure
+## Desenvolvimento
+
+### Pré-requisitos
+
+- Node.js (v14 ou superior)
+- npm (v6 ou superior) ou Yarn
+
+### Instalação
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/upcarz-scheduler.git
+   cd upcarz-scheduler
+   ```
+
+2. Instale as dependências:
+   ```bash
+   npm install
+   # ou
+   yarn
+   ```
+
+### Executando localmente
+
+```bash
+npm run dev
+# ou
+yarn dev
+```
+
+O aplicativo estará disponível em [http://localhost:3000](http://localhost:3000).
+
+### Construção para produção
+
+```bash
+npm run build
+# ou
+yarn build
+```
+
+Os arquivos de produção serão gerados na pasta `dist/`.
+
+## Estrutura do Projeto
 
 ```
 upcarz-scheduler/
-├── data/                     # JSON data files for each condominium
-│   ├── Jundiai_BrisasdaMata.json
-│   ├── Jundiai_BrisasJundiai.json
-│   └── ... (other condominium files)
 ├── src/
-│   ├── config.js            # Configuration and constants
-│   ├── utils.js             # Utility functions
-│   ├── agenda.js            # Agenda management and rendering
-│   └── main.js              # Main application logic
-├── index.html               # Main HTML file
-├── .gitignore               # Git ignore file
-└── README.md                # This file
+│   ├── agenda.js      # Gerenciador de agenda
+│   ├── config.js      # Configurações do aplicativo
+│   ├── main.js        # Ponto de entrada do aplicativo
+│   └── utils.js       # Funções utilitárias
+├── data/              # Dados locais (JSON)
+├── dist/             # Build de produção
+├── public/            # Arquivos estáticos
+├── index.html         # Página principal
+├── package.json       # Dependências e scripts
+├── tailwind.config.js # Configuração do Tailwind CSS
+└── vite.config.js     # Configuração do Vite
 ```
 
-## Setup and Installation
+## Variáveis de Ambiente
 
-1. Clone this repository or download the files to your local machine.
-2. For local development, serve the files using a local web server:
-   - Install Python if you don't have it
-   - Open a terminal in the project directory
-   - Run: `python -m http.server 8000`
-   - Open `http://localhost:8000` in your browser
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis (se necessário):
 
-## How to Use
-
-1. Select your condominium from the dropdown menu.
-2. View the available time slots in the weekly calendar.
-3. Click on an available time slot to select it.
-
-## Data Structure
-
-The application expects data in the following format:
-
-```json
-{
-    "condominio": "Condominium Name",
-    "cidade": "Jundiaí",
-    "microRegiao": 1,
-    "horariosDisponiveis": {
-        "segunda": {
-            "manha": ["08:00", "08:30", ...],
-            "tarde": ["12:00", "12:30", ...]
-        },
-        "terca": {
-            "manha": ["08:00", "08:30", ...],
-            "tarde": ["12:00", "12:30", ...]
-        },
-        ...
-    }
-}
-
-        ]
-        // ... more dates
-    }
-}
+```
+VITE_APP_TITLE=Upcarz Scheduler
+VITE_API_URL=https://sua-api.com
 ```
 
-## Integration with Google Sheets (Future Implementation)
+## Licença
 
-To connect with Google Sheets in production:
-
-1. Set up a Google Cloud Project and enable the Google Sheets API.
-2. Create a service account and download the credentials JSON file.
-3. Update the `CONFIG` object in `src/config.js` with your Google Sheets ID and API key.
-4. Uncomment and implement the Google Sheets API calls in the `loadAgenda` method.
-
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## License
-
-This project is licensed under the MIT License.
-
-## Credits
-
-Built for Upcarz by [Your Name]
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.

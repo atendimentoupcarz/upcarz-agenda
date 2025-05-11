@@ -1,123 +1,116 @@
 /**
- * Utility functions for the Upcarz Scheduler
+ * Utility functions for the application
  */
 
-/**
- * Format a date object to a localized date string
- * @param {Date} date - The date to format
- * @returns {string} Formatted date string (e.g., "Seg, 15 Mai")
- */
+// Format date to YYYY-MM-DD
 function formatDate(date) {
-    const options = { weekday: 'short', day: 'numeric', month: 'short' };
-    return date.toLocaleDateString('pt-BR', options);
+    const d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
 }
 
-/**
- * Get the week start and end dates for a given date
- * @param {Date} date - Any date within the target week
- * @returns {Object} Object containing start and end dates of the week
- */
-function getWeekRange(date = new Date()) {
-    const currentDate = new Date(date);
-    const currentDay = currentDate.getDay();
-    const startDate = new Date(currentDate);
-    
-    // Adjust to Monday as the first day of the week
-    const dayOffset = currentDay === 0 ? -6 : 1 - currentDay;
-    startDate.setDate(currentDate.getDate() + dayOffset);
-    
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    
-    return { startDate, endDate };
-}
-
-/**
- * Generate an array of dates for a given week
- * @param {Date} startDate - The start date of the week
- * @returns {Array} Array of date objects for the week
- */
-function getWeekDates(startDate) {
-    const dates = [];
-    const currentDate = new Date(startDate);
-    
-    for (let i = 0; i < 7; i++) {
-        const date = new Date(currentDate);
-        date.setDate(currentDate.getDate() + i);
-        dates.push(date);
-    }
-    
-    return dates;
-}
-
-/**
- * Format time in 24h format to 12h format with AM/PM
- * @param {number} hour - Hour in 24h format
- * @param {number} [minute=0] - Minute (0 or 30)
- * @returns {string} Formatted time (e.g., '9:00 AM' or '2:30 PM')
- */
-function formatTime(hour, minute = 0) {
-    const period = hour < 12 ? 'AM' : 'PM';
-    const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12-hour format
-    const displayMinute = minute.toString().padStart(2, '0');
-    return `${displayHour}:${displayMinute} ${period}`;
-}
-
-/**
- * Parse a time string in 'HH:MM' format to an object with hour and minute
- * @param {string} timeStr - Time string in 'HH:MM' format
- * @returns {Object} Object with hour and minute as numbers
- */
-function parseTimeString(timeStr) {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return { hours, minutes };
-}
-
-/**
- * Debounce a function to limit how often it can be called
- * @param {Function} func - The function to debounce
- * @param {number} wait - The time to wait in milliseconds
- * @returns {Function} The debounced function
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Show a notification to the user
- * @param {string} message - The message to display
- * @param {string} type - The type of notification (success, error, warning, info)
- */
-function showNotification(message, type = 'info') {
-    // In a real app, this would show a nice notification
-    console.log(`[${type.toUpperCase()}] ${message}`);
-}
-
-/**
- * Get the day of the week in Portuguese (lowercase)
- * @param {Date} date - The date to get the day for
- * @returns {string} The day of the week in Portuguese (segunda, terca, etc.)
- */
+// Get day of the week in Portuguese
 function getDayOfWeek(date) {
     const days = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
     return days[date.getDay()];
 }
 
-// Export the utility functions
+// Get week range (start and end dates)
+function getWeekRange(date = new Date()) {
+    const currentDate = new Date(date);
+    const currentDay = currentDate.getDay();
+    const currentTime = currentDate.getTime();
+    
+    // Get the start of the week (Sunday)
+    const startDate = new Date(currentDate);
+    startDate.setDate(currentDate.getDate() - currentDay);
+    startDate.setHours(0, 0, 0, 0);
+    
+    // Get the end of the week (Saturday)
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
+    
+    return {
+        startDate,
+        endDate,
+        currentDate: currentDate
+    };
+}
+
+// Show notification to the user
+function showNotification(message, type = 'info') {
+    // Remove any existing notifications
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    
+    // Set notification classes based on type
+    const baseClasses = 'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium max-w-md z-50 transition-all duration-300 transform translate-y-2 opacity-0';
+    let typeClasses = '';
+    
+    switch (type) {
+        case 'success':
+            typeClasses = 'bg-green-500';
+            break;
+        case 'error':
+            typeClasses = 'bg-red-500';
+            break;
+        case 'warning':
+            typeClasses = 'bg-yellow-500';
+            break;
+        case 'info':
+        default:
+            typeClasses = 'bg-blue-500';
+            break;
+    }
+    
+    notification.className = `${baseClasses} ${typeClasses}`;
+    notification.textContent = message;
+    
+    // Add to DOM
+    document.body.appendChild(notification);
+    
+    // Trigger animation
+    setTimeout(() => {
+        notification.classList.remove('translate-y-2', 'opacity-0');
+        notification.classList.add('translate-y-0', 'opacity-100');
+    }, 10);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('translate-y-0', 'opacity-100');
+        notification.classList.add('translate-y-2', 'opacity-0');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Export to window object
 window.utils = {
     formatDate,
-    getWeekRange,
     getDayOfWeek,
-    getWeekDates,
-    formatTime,
-    debounce,
+    getWeekRange,
     showNotification
 };
+
+// Initialize utility functions when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Add any initialization code here if needed
+});
