@@ -170,7 +170,14 @@ function loadAgendaData(city, condominiumSlug) {
     
     // In a real app, this would fetch from an API
     // For now, we'll use the local JSON file
-    const fileName = `${city}_${condominiumSlug}.json`;
+    // Normalize city name by removing accents and spaces
+    const normalizeString = (str) => {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+    };
+    
+    const normalizedCity = normalizeString(city);
+    const normalizedSlug = normalizeString(condominiumSlug);
+    const fileName = `${normalizedCity}_${normalizedSlug}.json`;
     const filePath = `data/${fileName}`;
     
     fetch(filePath)
@@ -183,6 +190,9 @@ function loadAgendaData(city, condominiumSlug) {
         .then(data => {
             // Update the UI with the loaded data
             window.agendaManager.setAgendaData(data);
+            
+            // Initialize the agenda with the current week
+            window.agendaManager.init();
             
             // Show the agenda section
             const formSection = document.getElementById('form-section');
