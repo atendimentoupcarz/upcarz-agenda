@@ -178,7 +178,8 @@ function loadAgendaData(city, condominiumSlug) {
     const normalizedCity = normalizeString(city);
     const normalizedSlug = normalizeString(condominiumSlug);
     const fileName = `${normalizedCity}_${normalizedSlug}.json`;
-    const filePath = `data/${fileName}`;
+    // Use absolute path for GitHub Pages
+    const filePath = `/atendimentoupcarz/data/${fileName}`;
     
     fetch(filePath)
         .then(response => {
