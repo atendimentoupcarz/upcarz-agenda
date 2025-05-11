@@ -6,23 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamento Upcarz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style type="text/tailwindcss">
-        @layer components {
-            .btn {
-                @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-            }
-            .btn-primary {
-                @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
-            }
-            .btn-secondary {
-                @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
-            }
-            .time-slot {
-                @apply w-full py-1 px-2 rounded transition-colors duration-200 text-sm;
-            }
-        }
-    </style>
+    <link href="dist/output.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
     <div id="app" class="min-h-screen p-4 md:p-8">
@@ -33,6 +17,6 @@
             </div>
         </div>
     </div>
-    <script type="module" src="./upcarz-agenda/src/main.js"></script>
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

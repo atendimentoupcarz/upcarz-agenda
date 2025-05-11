@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .btn {
+        @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    }
+    .btn-primary {
+        @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+    }
+    .btn-secondary {
+        @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+    }
+    .time-slot {
+        @apply w-full py-1 px-2 rounded transition-colors duration-200 text-sm;
+    }
+}
