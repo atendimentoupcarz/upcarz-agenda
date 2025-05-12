@@ -102,14 +102,6 @@ export function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Export all functions
-export {
-    formatDate,
-    getDayOfWeek,
-    getWeekRange,
-    showNotification
-};
-
 // Add to window for backward compatibility
 window.utils = {
     formatDate,
