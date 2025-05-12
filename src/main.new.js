@@ -24,10 +24,27 @@ function renderHomeView() {
                     <div class="mt-4">
                         <select id="condominium" class="w-64 px-4 py-2 border rounded-md">
                             <option value="">Selecione um condomínio</option>
-                            <option value="ViladaTerra">Vila da Terra</option>
-                            <option value="ViladoBosque">Vila do Bosque</option>
-                            <option value="ViladosLagos">Vila dos Lagos</option>
-                            <option value="CantodaNatureza">Canto da Natureza</option>
+                            <option value="cantodanatureza">Canto da Natureza</option>
+                            <option value="villadaterra">Vila da Terra</option>
+                            <option value="villabosque">Vila do Bosque</option>
+                            <option value="villadoslagos">Vila dos Lagos</option>
+                            <option value="villamontesiena">Vila Monte Siena</option>
+                            <option value="villanatureza">Vila Natureza</option>
+                            <option value="villapark">Vila Park</option>
+                            <option value="villareal">Vila Real</option>
+                            <option value="villareale">Villa Reale</option>
+                            <option value="villaregina">Vila Régia</option>
+                            <option value="villaregina2">Vila Regina II</option>
+                            <option value="villaregina3">Vila Regina III</option>
+                            <option value="villaregina4">Vila Regina IV</option>
+                            <option value="villaregina5">Vila Regina V</option>
+                            <option value="villareginanovo">Vila Regina Novo</option>
+                            <option value="villareginav">Vila Regina V</option>
+                            <option value="villareginavi">Vila Regina VI</option>
+                            <option value="villareginavii">Vila Regina VII</option>
+                            <option value="villareginaviii">Vila Regina VIII</option>
+                            <option value="villareginaix">Vila Regina IX</option>
+                            <option value="villareginax">Vila Regina X</option>
                         </select>
                     </div>
                 </div>
@@ -60,7 +77,7 @@ function initializeApplication() {
             condominioSelect.addEventListener('change', (e) => {
                 const condominio = e.target.value;
                 if (condominio) {
-                    window.agendaManager.loadAgenda('Jundiai', condominio);
+                    window.agendaManager.loadAgenda('Jundiaí', condominio);
                 }
             });
         }
