@@ -76,9 +76,7 @@ window.CONFIG = CONFIG;
 window.showNotification = showNotification;
 window.initApp = initApp;
 window.showError = showError;
-
-// Export functions
-export { showError, renderHomeView };
+window.renderHomeView = renderHomeView;
 
 // Initialize the app when the DOM is fully loaded
 if (document.readyState === 'loading') {
