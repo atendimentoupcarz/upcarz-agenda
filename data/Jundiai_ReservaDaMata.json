@@ -1,12 +1,12 @@
 {
   "location": {
     "city": "Jundiaí",
-    "condominium": "Brisas da Mata"
+    "condominium": "Reserva da Mata"
   },
   "availability": {
     "2025-05-13": [
-      { "time": "08:00", "available": true },
-      { "time": "08:30", "available": false },
+      { "time": "08:00", "available": false },
+      { "time": "08:30", "available": true },
       { "time": "09:00", "available": true }
     ],
     "2025-05-14": [

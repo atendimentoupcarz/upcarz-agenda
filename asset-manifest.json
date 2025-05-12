@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/upcarz-scheduler/static/css/main.2385c280.css",
+    "main.js": "/upcarz-scheduler/static/js/main.ba137a91.js",
+    "index.html": "/upcarz-scheduler/index.html",
+    "main.2385c280.css.map": "/upcarz-scheduler/static/css/main.2385c280.css.map",
+    "main.ba137a91.js.map": "/upcarz-scheduler/static/js/main.ba137a91.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2385c280.css",
+    "static/js/main.ba137a91.js"
+  ]
+}

@@ -1,16 +1,16 @@
 {
   "location": {
     "city": "Jundiaí",
-    "condominium": "Brisas da Mata"
+    "condominium": "Villaggio da Serra"
   },
   "availability": {
     "2025-05-13": [
       { "time": "08:00", "available": true },
-      { "time": "08:30", "available": false },
-      { "time": "09:00", "available": true }
+      { "time": "08:30", "available": true },
+      { "time": "09:00", "available": false }
     ],
     "2025-05-14": [
-      { "time": "08:00", "available": true }
+      { "time": "08:00", "available": false }
     ]
   }
 } 
