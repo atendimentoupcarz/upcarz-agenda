@@ -42,7 +42,7 @@ function renderHomeView() {
     }
 }
 
-export function initApp() {
+function initApp() {
     try {
         console.log('Initializing Upcarz Scheduler...');
         
