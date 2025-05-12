@@ -6,11 +6,19 @@ export * from './main.js';
 // Add any other exports you need
 
 // Initialize the app when imported
-import { initApp } from './main.js';
-
 // Initialize the app when the DOM is fully loaded
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.initApp) {
+            window.initApp();
+        } else {
+            console.error('initApp function not found on window object');
+        }
+    });
 } else {
-    initApp();
+    if (window.initApp) {
+        window.initApp();
+    } else {
+        console.error('initApp function not found on window object');
+    }
 }
