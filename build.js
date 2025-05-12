@@ -1,36 +1,31 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
+const { execSync } = require('child_process');
 
-// Create dist directory if it doesn't exist
-const distDir = path.join(__dirname, 'dist');
-if (!fs.existsSync(distDir)) {
-    fs.mkdirSync(distDir);
+// Clean dist directory
+fs.emptyDirSync('dist');
+
+// Copy all files to dist
+execSync('xcopy /E /I /Y "src" "dist\\src"');
+
+// Copy index.html
+try {
+    fs.copyFileSync('index.html', 'dist/index.html');
+    console.log('Copied index.html to dist/');
+} catch (err) {
+    console.error('Error copying index.html:', err);
 }
 
-// Copy all files to dist directory
-const copyRecursiveSync = (src, dest) => {
-    const exists = fs.existsSync(src);
-    const stats = exists && fs.statSync(src);
-    const isDirectory = exists && stats.isDirectory();
-
-    if (isDirectory) {
-        if (!fs.existsSync(dest)) {
-            fs.mkdirSync(dest);
-        }
-        fs.readdirSync(src).forEach((childItemName) => {
-            copyRecursiveSync(
-                path.join(src, childItemName),
-                path.join(dest, childItemName)
-            );
-        });
-    } else {
-        fs.copyFileSync(src, dest);
-    }
-};
-
-// Copy all files except node_modules, .git, etc.
-const copyFiles = () => {
-    const excludeDirs = ['node_modules', '.git', 'dist', '.github'];
+// Copy package.json
+try {
+    const pkg = require('./package.json');
+    // Remove devDependencies for production
+    delete pkg.devDependencies;
+    fs.writeFileSync('dist/package.json', JSON.stringify(pkg, null, 2));
+    console.log('Created package.json in dist/');
+} catch (err) {
+    console.error('Error creating package.json:', err);
+}
     const files = fs.readdirSync(__dirname);
     
     files.forEach((file) => {

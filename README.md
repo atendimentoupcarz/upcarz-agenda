@@ -15,62 +15,48 @@ Sistema de agendamento de lavagem de carros para condomínios em Jundiaí.
 ### Pré-requisitos
 
 - Node.js (v14 ou superior)
-- npm (v6 ou superior) ou Yarn
-
-### Instalação
-
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/upcarz-scheduler.git
-   cd upcarz-scheduler
-   ```
-
-2. Instale as dependências:
    ```bash
    npm install
-   # ou
-   yarn
    ```
 
-### Executando localmente
+2. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-# ou
-yarn dev
-```
+3. Acesse o aplicativo em [http://localhost:3000](http://localhost:3000)
 
-O aplicativo estará disponível em [http://localhost:3000](http://localhost:3000).
-
-### Construção para produção
+## Construção para produção
 
 ```bash
 npm run build
-# ou
-yarn build
 ```
 
-Os arquivos de produção serão gerados na pasta `dist/`.
+Isso irá gerar os arquivos otimizados na pasta `dist/`.
+
+## Implantação no GitHub Pages
+
+1. Certifique-se de que todas as alterações foram commitadas
+2. Execute o script de build:
+   ```bash
+   npm run build
+   ```
+3. Faça push da branch `gh-pages` para o GitHub
+
+### Implantação automática com GitHub Actions
+
+O projeto inclui um fluxo de trabalho do GitHub Actions que implanta automaticamente na branch `gh-pages` quando você faz push para a branch `main`.
 
 ## Estrutura do Projeto
 
-```
-upcarz-scheduler/
-├── src/
-│   ├── agenda.js      # Gerenciador de agenda
-│   ├── config.js      # Configurações do aplicativo
-│   ├── main.js        # Ponto de entrada do aplicativo
-│   └── utils.js       # Funções utilitárias
-├── data/              # Dados locais (JSON)
-├── dist/             # Build de produção
-├── public/            # Arquivos estáticos
-├── index.html         # Página principal
-├── package.json       # Dependências e scripts
-├── tailwind.config.js # Configuração do Tailwind CSS
-└── vite.config.js     # Configuração do Vite
-```
-
-## Variáveis de Ambiente
+- `src/` - Código-fonte do aplicativo
+  - `components/` - Componentes reutilizáveis
+  - `styles/` - Estilos globais
+  - `utils/` - Funções utilitárias
+  - `App.js` - Componente raiz do aplicativo
+  - `index.js` - Ponto de entrada do aplicativo
+- `public/` - Arquivos estáticos
+- `dist/` - Arquivos de construção (gerados)
 
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis (se necessário):
 
