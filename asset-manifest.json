@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/upcarz-scheduler/static/css/main.3a9b91be.css",
-    "main.js": "/upcarz-scheduler/static/js/main.65bb1e11.js",
+    "main.js": "/upcarz-scheduler/static/js/main.5e28bafe.js",
     "index.html": "/upcarz-scheduler/index.html",
     "main.3a9b91be.css.map": "/upcarz-scheduler/static/css/main.3a9b91be.css.map",
-    "main.65bb1e11.js.map": "/upcarz-scheduler/static/js/main.65bb1e11.js.map"
+    "main.5e28bafe.js.map": "/upcarz-scheduler/static/js/main.5e28bafe.js.map"
   },
   "entrypoints": [
     "static/css/main.3a9b91be.css",
-    "static/js/main.65bb1e11.js"
+    "static/js/main.5e28bafe.js"
   ]
 }
