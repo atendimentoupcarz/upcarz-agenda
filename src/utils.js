@@ -114,7 +114,6 @@ window.utils = {
 window.formatDate = formatDate;
 window.getDayOfWeek = getDayOfWeek;
 window.getWeekRange = getWeekRange;
-window.showNotification = showNotification;
 
 // Initialize utility functions when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
